@@ -16,7 +16,7 @@
 - [x] **D7 · Sat 01:40** Multi-region recording (PR #2): `--region north_atlantic|europe|us_northeast|east_canada`, one terminal per region, `--once` snapshots, `scan [region]`. Weather budgets keep all regions under the Open-Meteo free tier.
 - [ ] **D8 · Sat night / morning** Pick the demo cycles: `python -m backend.physics.scan [region]`, commit the 5-10 best night cycles (most flagged flights) to `data/replay/`. Re-scan in the morning and swap if better ones appear.
 - [ ] **D9 · Sat afternoon** Integration with Hedi: help plug `assess_cycle()` into `pipeline.py` (H6), then sanity-check the agent's climb/descend decisions on 2-3 flagged flights.
-- [ ] **D10 · Sat evening** Fact-check every number in the README and pitch against its source (35 % share, −54 %, −11.6 %, Borella, Teoh).
+- [x] **D10 · Sat evening** Fact-check every number in the README and pitch against its source (35 % share, −54 %, −11.6 %, Borella, Teoh). *(PR #3: docs/fact_check.md, all ✅)*
 
 **Fallback rule at noon Saturday:** if the physics isn't ready on real data, keep **Schmidt-Appleman + RHi only, without fuel**, and add the fuel at 18:00. *(No longer needed: physics delivered.)*
 
@@ -48,6 +48,22 @@ Order: tonight (1), Saturday morning (3) → (2) → H7, Saturday alongside (4) 
 - [ ] **X3 · Énergie 3R:** 2-minute chat to test the Sustainability angle.
 - [ ] **X4 · TypeSafe:** feedback on our Jev usage (see T2).
 
+## Saturday plan (written Sat 11:00 after a full check)
+**State at 11:00:** pipeline, Jev, fallback, Granite, benchmark (60 flights), published demo, README all done. Dawud's PR #3 (W5 threshold sweep, W8 cross-section, D10 fact-check, Europe cycles 14 + 22 flagged) merges cleanly, 30 tests pass. Not done: GitHub repo rename, Lovable republish (live site still says ContrailWatch), Cloud LLM credits (Ed hasn't replied), pitch deck. New on Discord: no demo video required (10:20); 9th "bonus" track revealed only at closing (all tracks but Brim eligible); projector question unanswered; someone asked about IBM Bob credits.
+
+| When | Hedi | Dawud | Cloud LLM |
+|---|---|---|---|
+| 11:00-12:00 | Rename the GitHub repo (click); Lovable: rename project + address, Publish; W1 pitch storyline | Pick the best Europe cycle(s) for the demo; check the day cycle's day/night factor | Merge PR #3; export the Europe cycles with real Jev + Granite into the demo |
+| **12:00 sync** | Merge hedi/agent → main together; walk through the demo cycles (D9) | same | Update README numbers |
+| 12:00-13:00 | Lunch; booth visits: TypeSafe (Jev feedback), IBM (Bob credits?), Lovable | Lunch; ask organizers: projector or laptop? | Benchmark on the Europe cycles (many flagged = stronger "right action" test) |
+| 13:00-17:00 | W2 demo click path, W4 agent Q&A; T4 1Password if time | Physics slide from the cross-section, threshold-sensitivity answer, day vs night | Pitch deck (W11) from W1 + Dawud's material |
+| 18:00 sync | Deck review together, cut to 2.5 min | same | Fixes from the review |
+| 23:00 | **Rehearsal 1**, timed, with the live demo | same | Q&A drill |
+| Sun 9:00 | Rehearsal 2, feature freeze | same | Final README, QR on the new address |
+| Sun 10-11 | Team check-in | same | Final push at 11:00 |
+
+**Cloud LLM credits:** Ed hasn't replied. Not blocking: Granite covers writing and the benchmark. Only ask in person if you pass by the Cloud LLM Builder Club.
+
 ## While the recorders run (Sat 04:00 → 12:00)
 Nothing here needs new recordings. New cycles are a bonus, picked up at noon.
 
@@ -59,10 +75,10 @@ Nothing here needs new recordings. New cycles are a bonus, picked up at noon.
 - [ ] **T4 · 1Password** (when awake): install the CLI and sign in.
 
 **Dawud**
-- [ ] **W5 · Threshold sensitivity (30 min):** run the scan with RHI_THRESHOLD 90 / 95 / 100 on the whole recording: how many flights flagged each time? Ready answer for "how sensitive is your result to the threshold?".
-- [ ] **W6 · A day-time flagged cycle:** look for one in the recording, to show day vs night (day contrails partly cool; our factor 15 vs 50 kg CO2e/km).
-- [ ] **W7 · Other regions:** `scan north_atlantic` / `scan europe`; if a cycle has several flagged flights, push it (more impressive than 1 per cycle).
-- [ ] **W8 · Physics slide (D6):** the cross-section visual (aircraft in the humid layer, arrows to FL±20), as an image or a sketch Cloud LLM can redraw.
+- [x] **W5 · Threshold sensitivity (30 min):** run the scan with RHI_THRESHOLD 90 / 95 / 100 on the whole recording: how many flights flagged each time? Ready answer for "how sensitive is your result to the threshold?". *(PR #3: 3 → 6 flights from 95% to 90%, always < 1% of aircraft)*
+- [x] **W6 · A day-time flagged cycle:** look for one in the recording, to show day vs night (day contrails partly cool; our factor 15 vs 50 kg CO2e/km). *(PR #3: Europe day cycle, 22 flagged)*
+- [x] **W7 · Other regions:** `scan north_atlantic` / `scan europe`; if a cycle has several flagged flights, push it (more impressive than 1 per cycle). *(PR #3: Europe night cycle, 14 flagged)*
+- [x] **W8 · Physics slide (D6):** the cross-section visual (aircraft in the humid layer, arrows to FL±20), as an image or a sketch Cloud LLM can redraw. *(PR #3: docs/figures/cross_section.svg)*
 - [ ] **D10 · Fact-check the rest:** −54 %, −11.6 %, Borella factor, Teoh numbers.
 
 **Cloud LLM**
