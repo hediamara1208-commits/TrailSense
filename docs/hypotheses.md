@@ -25,14 +25,16 @@ Toutes les valeurs sont réglables dans `backend/config.py`. Ce qui est **à vé
 - Surconsommation pendant la déviation : **+1,5 % en montée, +2 % en descente** (ordre de grandeur de l'essai Google / American Airlines 2023 : ~2 % sur les vols déviés).
 - **3,16 kg de CO₂ par kg** de kérosène.
 
-## Réchauffement évité ⚠️ (l'estimation la plus incertaine)
+## Réchauffement évité (l'estimation la plus incertaine)
 - Valeurs retenues : **50 kg CO2e/km la nuit, 15 kg CO2e/km le jour** (horizon 100 ans), fourchette ÷3 à ×3 affichée.
 - D'où ça vient (Borella et al., *ACP* 24, 9401-9417, 2024, https://acp.copernicus.org/articles/24/9401/2024/) :
   - énergie de forçage (EF) moyenne des vols formant des contrails : **~9,6 × 10¹⁰ J par km** (médiane 2,9 × 10¹⁰, 90e centile 2,8 × 10¹¹) ;
   - efficacité climatique des contrails : **0,37** ;
   - AGWP100 du CO₂ ≈ 9,2 × 10⁻¹⁴ W m⁻² an kg⁻¹ (GIEC AR5), soit ≈ 1,48 × 10⁹ J par kg de CO₂ sur 100 ans.
   - → 9,6 × 10¹⁰ × 0,37 / 1,48 × 10⁹ ≈ **24 kg CO2e par km** en moyenne jour + nuit. La nuit pèse plus (pas de refroidissement solaire), le jour moins, d'où 50 / 15.
-  - ⚠️ Les valeurs d'EF par km viennent d'un résumé de l'article : **à vérifier dans le PDF** (Sect. 3 et tableaux S1-S2) avant de les citer.
+  - ✅ Vérifié dans l'article (Sect. 3) : « Contrail energy forcing per flown distance ranges from −8.7 × 10¹¹ to 5.0 × 10¹² J km⁻¹, with a mean of 9.6 × 10¹⁰ J km⁻¹ and a median of 2.9 × 10¹⁰ J km⁻¹. » Sur l'échantillon, 55 % des vols forment des contrails, dont 80 % réchauffants ; l'énergie ajoutée par les contrails réchauffants est 23 fois celle retirée par les refroidissants.
+  - **Hypothèse prudente** : cette moyenne est par km *volé* (toute la longueur des vols formant des contrails), alors qu'on l'applique par km *de contrail*. Le réchauffement réel par km de contrail est donc plus élevé : notre bilan est sous-estimé, pas gonflé.
+  - Remarque : l'article donne 1,3 × 10¹⁰ J/km comme moyenne des seuls contrails réchauffants, inférieure à la moyenne globale, ce qui paraît incohérent (coquille probable). On s'appuie sur la moyenne globale.
 - Le choix de la métrique (GWP100, GWP20, ATR…) change fortement le résultat : c'est le sujet même de Borella et al. On utilise l'horizon 100 ans, comme pour le CO₂.
 - Robustesse : pour un avion à 500 kt, 150 km de zone sursaturée = 18 min, soit ~13 kg de carburant en plus (~42 kg CO₂) contre ~7,5 t CO2e évitées la nuit. Le bilan reste positif même avec un facteur divisé par 100, ce qui est cohérent avec Teoh et al. (2020) : ~59 % du forçage des contrails évité pour ~0,014 % de carburant en plus.
 
