@@ -32,19 +32,19 @@ _cache: dict[tuple[str, int], tuple[float, Snapshot]] = {}
 
 # ---------- Decisions ----------
 
-def _decide(assessments: list[RiskAssessment], threshold: float) -> tuple[list[Decision], dict]:
+def _decide(assessments: list[RiskAssessment], threshold: float,
+            callsigns: dict[str, str]) -> tuple[list[Decision], dict]:
     """Jev if enabled and working, otherwise the hard-coded rule (same output)."""
     if config.USE_JEV:
         try:
-            return jev.decide(assessments, threshold)
-        except NotImplementedError:
-            log.info("jev.decide() not built yet: using the fallback rule")
+            return jev.decide(assessments, threshold, callsigns)
         except Exception as e:  # API down, quota, network...
             log.warning("Jev failed (%s): using the fallback rule", e)
     return fallback.decide_by_rule(assessments, threshold)
 
 
-def decide_all(assessments: list[RiskAssessment], threshold: float) -> tuple[list[Decision], dict]:
+def decide_all(assessments: list[RiskAssessment], threshold: float,
+               callsigns: dict[str, str] | None = None) -> tuple[list[Decision], dict]:
     """Decision for every flagged flight. Obvious MAINTAIN cases never reach Jev."""
     flagged = [a for a in assessments if a.flagged]
     obvious = [a for a in flagged if not jev.needs_jev(a)]
@@ -52,7 +52,7 @@ def decide_all(assessments: list[RiskAssessment], threshold: float) -> tuple[lis
     decisions = [fallback.maintain_by_physics(a) for a in obvious]
     usage = {"jev_calls": 0, "jev_input_tokens": 0}
     if to_decide:
-        more, usage = _decide(to_decide, threshold)
+        more, usage = _decide(to_decide, threshold, callsigns or {})
         decisions += more
     return decisions, usage
 
@@ -95,10 +95,10 @@ def compute_cycle(mode: str, replay_index: int, threshold: float) -> Snapshot:
     data = live_cycle_data() if mode == "live" else load_replay(replay_index)
     aircraft, assessments, stats = assess_cycle(data)
     receipt = Receipt(**stats)
-    decisions, usage = decide_all(assessments, threshold)
+    callsigns = {ac.icao24: ac.callsign for ac in aircraft}
+    decisions, usage = decide_all(assessments, threshold, callsigns)
     receipt.jev_calls = usage.get("jev_calls", 0)
     receipt.jev_input_tokens = usage.get("jev_input_tokens", 0)
-    callsigns = {ac.icao24: ac.callsign for ac in aircraft}
     advisories = write_advisories(decisions, assessments, callsigns, receipt)
     receipt.latency_ms = round((time.perf_counter() - t0) * 1000, 1)
     return Snapshot(mode=mode, timestamp=data["timestamp"], threshold=threshold, aircraft=aircraft,

@@ -20,7 +20,21 @@ Playground measurements (jev-1.14.0):
 Frugality to test: group several flagged flights into ONE request (one state for all flights,
 questions prefixed by icao24), if the request size allows it.
 """
-from backend.models import Decision, RiskAssessment
+import json
+import os
+import time
+
+import httpx
+from dotenv import load_dotenv
+
+from backend import config
+from backend.agent.fallback import route_for
+from backend.models import Action, Decision, RiskAssessment
+
+load_dotenv()  # TYPESAFE_API_KEY comes from .env (never committed)
+
+API_URL = "https://api.typesafe.ai/v1/systemone"
+TIMEOUT_S = 10.0
 
 # The 4 questions, in the raw API / playground format (validated in the playground).
 # With the Python SDK: Choice(instructions=..., criteria=...), Noul(...), Score(...).
@@ -68,19 +82,90 @@ def needs_jev(assessment: RiskAssessment) -> bool:
     return any(v > 0 for v in assessment.net_benefit_co2e_kg.values())
 
 
-def build_state(assessment: RiskAssessment) -> str:
+def build_state(assessment: RiskAssessment, callsign: str = "") -> str:
     """Compact JSON summary of the flight, in the format validated in the playground:
-    flight, current_level (FL, heading, day/night), note "Do not recalculate",
+    flight, current_level (FL, day/night), note "Do not recalculate",
     options {maintain_FLxxx, climb_to_FLyyy, descend_to_FLzzz} with RHi, persistence,
     extra fuel and net benefit, then the forecast quality."""
-    raise NotImplementedError
+    a, cur = assessment, assessment.current
+
+    def option(level, key: str | None) -> dict:
+        return {
+            "rhi_pct": round(level.rh_ice_pct),
+            "contrail_forms": level.sac_satisfied,
+            "persistent_contrail": level.persistent,
+            "extra_fuel_kg": a.fuel_penalty_kg.get(key, 0) if key else 0,
+            "net_climate_benefit_co2e_kg": a.net_benefit_co2e_kg.get(key, 0) if key else 0,
+        }
+
+    options = {f"maintain_FL{cur.flight_level}": option(cur, None)}
+    if a.climb is not None:
+        options[f"climb_to_FL{a.climb.flight_level}"] = option(a.climb, "climb")
+    if a.descend is not None:
+        options[f"descend_to_FL{a.descend.flight_level}"] = option(a.descend, "descend")
+    margin = cur.rh_ice_pct - config.RHI_THRESHOLD
+    state = {
+        "flight": callsign or a.icao24,
+        "current_level": {"flight_level": cur.flight_level, "time": "night" if a.is_night else "day",
+                          "minutes_in_ice_supersaturated_layer": a.minutes_in_issr},
+        "note": "All numbers were computed by a physics model. Do not recalculate them. "
+                "A positive net_climate_benefit means the change avoids more warming than its extra fuel emits. "
+                "Night contrails always warm the climate.",
+        "options": options,
+        "forecast": {"source": "GFS weather model (Open-Meteo), hourly",
+                     "humidity_margin_above_persistence_threshold_pct": round(margin)},
+    }
+    return json.dumps(state, separators=(",", ":"))
 
 
-def decide(assessments: list[RiskAssessment], threshold: float) -> tuple[list[Decision], dict]:
-    """Decision for each flagged flight. Returns (decisions, usage) with
-    usage = {calls, input_tokens, skipped_no_benefit}.
+def _normalise_score(answer: dict, n_levels: int) -> float:
+    """Jev returns a score on 0..(n_levels-1): bring it to 0-1."""
+    return round(min(1.0, max(0.0, float(answer.get("score", 0)) / (n_levels - 1))), 3)
 
-    - needs_jev() False -> Decision(action=MAINTAIN, confidence=1.0, route=AUTO), no call.
-    - otherwise -> call Jev with build_state() + QUESTIONS, route by threshold.
+
+def parse_answers(assessment: RiskAssessment, answers: dict, threshold: float) -> Decision:
+    """Raw API answers -> Decision. Kept separate so it can be tested without the network."""
+    action = answers["action"]
+    confidence = round(float(action.get("confidence", 0.0)), 3)
+    return Decision(
+        icao24=assessment.icao24,
+        action=Action(action["choice"]),
+        confidence=confidence,
+        persistent_warming_prob=round(float(answers["persistent_warming"].get("noul", 0.0)), 3),
+        forecast_reliability=_normalise_score(answers["forecast_reliability"],
+                                              len(QUESTIONS["forecast_reliability"]["criteria"])),
+        operational_feasibility=_normalise_score(answers["operational_feasibility"],
+                                                 len(QUESTIONS["operational_feasibility"]["criteria"])),
+        route=route_for(confidence, threshold),
+        decided_by="jev",
+    )
+
+
+def decide(assessments: list[RiskAssessment], threshold: float,
+           callsigns: dict[str, str] | None = None) -> tuple[list[Decision], dict]:
+    """One Jev call per flight that needs it (needs_jev() is checked by pipeline.py first).
+
+    Returns (decisions, usage) with usage = {jev_calls, jev_input_tokens, jev_ms}.
+    Any error (no key, network, quota, HTTP 4xx/5xx) is raised: pipeline.py then switches
+    the whole batch to the fallback rule, so the demo never breaks.
     """
-    raise NotImplementedError
+    key = os.getenv("TYPESAFE_API_KEY")
+    if not key:
+        raise RuntimeError("TYPESAFE_API_KEY missing from .env")
+    callsigns = callsigns or {}
+    decisions, usage = [], {"jev_calls": 0, "jev_input_tokens": 0, "jev_ms": 0.0}
+    headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+    with httpx.Client(timeout=TIMEOUT_S, headers=headers) as client:
+        for a in assessments:
+            body = {"model": config.JEV_MODEL, "state": build_state(a, callsigns.get(a.icao24, "")),
+                    "questions": QUESTIONS}
+            t0 = time.perf_counter()
+            r = client.post(API_URL, json=body)
+            usage["jev_ms"] += (time.perf_counter() - t0) * 1000
+            r.raise_for_status()
+            data = r.json()
+            usage["jev_calls"] += 1
+            usage["jev_input_tokens"] += data.get("usage", {}).get("input_tokens", 0)
+            decisions.append(parse_answers(a, data["answers"], threshold))
+    usage["jev_ms"] = round(usage["jev_ms"], 1)
+    return decisions, usage
