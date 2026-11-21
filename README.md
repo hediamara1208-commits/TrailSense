@@ -5,7 +5,7 @@
 A frugal AI agent that helps airline dispatchers avoid climate-warming contrails. In a few milliseconds it finds the few flights concerned and proposes to climb or descend 2,000 ft, using far less compute than a conventional agent (ratio measured by our benchmark).
 
 ## Why
-- Contrails account for about 35% of aviation's warming impact (IPCC 2022), and a small minority of flights causes most of it.
+- Contrail cirrus is the largest single term of aviation's climate forcing: about 57% of its net effective radiative forcing in 2018 (57.4 of 100.9 mW/m², with a wide uncertainty range), more than aviation's CO₂ (34.3) ([Lee et al., 2021](https://doi.org/10.1016/j.atmosenv.2020.117834)). A small minority of flights causes most of it.
 - Avoiding them works on the flights that follow the plan (−54% in Google / American Airlines trials), but adoption is still low in real operations (−11.6% intent-to-treat, 2026 trial).
 - Analysing every flight with a large LLM would be slow, expensive and polluting.
 
