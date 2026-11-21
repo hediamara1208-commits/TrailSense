@@ -70,10 +70,13 @@ def test_no_benefit_means_maintain_without_jev(replay):
 
 
 def test_guardrail_unreliable_forecast_goes_to_sophie():
-    """A confident climb built on an unreliable forecast is never sent automatically."""
+    """When enabled, a confident climb built on an unreliable forecast is never sent automatically."""
     from backend.agent.fallback import route_for
     from backend.models import Action, Route
-    assert route_for(0.96, 0.8, forecast_reliability=0.09, action=Action.CLIMB) == Route.HUMAN
-    assert route_for(0.96, 0.8, forecast_reliability=0.9, action=Action.CLIMB) == Route.AUTO
+    on = dict(min_reliability=0.5)
+    assert route_for(0.96, 0.8, forecast_reliability=0.09, action=Action.CLIMB, **on) == Route.HUMAN
+    assert route_for(0.96, 0.8, forecast_reliability=0.9, action=Action.CLIMB, **on) == Route.AUTO
     # Keeping the level changes nothing for the crew: no guardrail needed.
-    assert route_for(1.0, 0.8, forecast_reliability=0.09, action=Action.MAINTAIN) == Route.AUTO
+    assert route_for(1.0, 0.8, forecast_reliability=0.09, action=Action.MAINTAIN, **on) == Route.AUTO
+    # Off by default (config): Jev rates every GFS forecast low, so the score carries no signal.
+    assert route_for(0.96, 0.8, forecast_reliability=0.09, action=Action.CLIMB) == Route.AUTO
