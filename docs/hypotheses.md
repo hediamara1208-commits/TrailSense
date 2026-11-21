@@ -1,4 +1,4 @@
-# ContrailWatch physical assumptions
+# TrailSense physical assumptions
 
 Every value is tunable in `backend/config.py`. Anything still **to be checked** is marked ⚠️.
 
