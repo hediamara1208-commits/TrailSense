@@ -48,6 +48,28 @@ Order: tonight (1), Saturday morning (3) → (2) → H7, Saturday alongside (4) 
 - [ ] **X3 · Énergie 3R:** 2-minute chat to test the Sustainability angle.
 - [ ] **X4 · TypeSafe:** feedback on our Jev usage (see T2).
 
+## While the recorders run (Sat 04:00 → 12:00)
+Nothing here needs new recordings. New cycles are a bonus, picked up at noon.
+
+**Hedi**
+- [ ] **W1 · Pitch storyline (30 min):** write the 2-4 min story in bullet points: hook (contrails ≈ 57% of aviation's forcing), Sophie's problem, think fast / think slow, live demo, benchmark, ask. Claude builds the deck from it.
+- [ ] **W2 · Demo click path (15 min):** the exact sequence to show live: cycle 1 AAL278 (Jev hesitates 74/25 → Sophie reviews) → slider → cycle 3 UPS214 (0.98 → auto) → search "AAL278" (flagged at 04:37, clear 25 min later) → benchmark section. Time it: max 60 s.
+- [ ] **W3 · Phone test of the live site (10 min):** open the QR code on your phone, note anything broken or unclear.
+- [ ] **W4 · Agent Q&A answers (20 min):** why Jev and not an LLM; what the 0.53-0.61 confidences mean; why the grouped call is off (inflated confidence); the 19 false alarms of the all-LLM agent; what happens if Jev is down (fallback rule).
+- [ ] **T4 · 1Password** (when awake): install the CLI and sign in.
+
+**Dawud**
+- [ ] **W5 · Threshold sensitivity (30 min):** run the scan with RHI_THRESHOLD 90 / 95 / 100 on the whole recording: how many flights flagged each time? Ready answer for "how sensitive is your result to the threshold?".
+- [ ] **W6 · A day-time flagged cycle:** look for one in the recording, to show day vs night (day contrails partly cool; our factor 15 vs 50 kg CO2e/km).
+- [ ] **W7 · Other regions:** `scan north_atlantic` / `scan europe`; if a cycle has several flagged flights, push it (more impressive than 1 per cycle).
+- [ ] **W8 · Physics slide (D6):** the cross-section visual (aircraft in the humid layer, arrows to FL±20), as an image or a sketch Claude can redraw.
+- [ ] **D10 · Fact-check the rest:** −54 %, −11.6 %, Borella factor, Teoh numbers.
+
+**Claude**
+- [ ] **W9 · Benchmark on the 3 flagged cycles** (not just AAL278): a larger sample for the slide (runs on Hedi's laptop, ~7 min per cycle).
+- [ ] **W10 · README for the judges:** what it does, live link + QR, architecture diagram, results table, how to run, tools used, sources.
+- [ ] **W11 · Pitch deck** from W1, once Hedi has written the storyline.
+
 ## Pitch: shared
 - **Hedi:** the story (hook, Sophie, System 1 / System 2), the demo, the receipt and the benchmark.
 - **Dawud:** the physics in 30 seconds, and the jury's science questions.
