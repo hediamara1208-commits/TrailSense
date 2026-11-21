@@ -12,12 +12,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))  # so that "backend" can be imported
 
-from backend.benchmark.all_llm import OUT, run_all, run_benchmark  # noqa: E402
+from backend.benchmark.all_llm import out_path, run_all, run_benchmark  # noqa: E402
 
 if __name__ == "__main__":
     one = "--one" in sys.argv   # default: every recorded cycle with a flagged flight
+    # Region: --region east_canada, or the REGION constant below (handy with VS Code's Run button)
+    REGION = "europe"
+    region = sys.argv[sys.argv.index("--region") + 1] if "--region" in sys.argv else REGION
     print("Running... (the all-LLM side makes one local Granite call per flight, ~7 min per cycle)")
-    r = run_benchmark() if one else run_all()
+    r = run_benchmark(region=region) if one else run_all(region=region)
     a, c = r["all_llm"], r["trailsense"]
     print(f"\n{r['flights']} flights from {r['cycle']}, {r['flagged_by_physics']} flagged by physics\n")
     print(f"{'':18}{'all-LLM':>14}{'TrailSense':>16}")
@@ -27,4 +30,4 @@ if __name__ == "__main__":
     print(f"{'LLM tokens':18}{a['input_tokens'] + a['output_tokens']:>14}{'':>16}   (+ Jev {c['jev_input_tokens']} tokens)")
     print(f"\nRatios: {r['ratios']}")
     print(f"Quality: {json.dumps(r['quality'], indent=1)}")
-    print(f"\nSaved to {OUT}")
+    print(f"\nSaved to {out_path(region)}")

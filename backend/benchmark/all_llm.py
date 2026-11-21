@@ -29,7 +29,12 @@ from backend.agent import pipeline
 from backend.physics.cycle import _profile_lookup, assess_cycle
 from backend.sources.recorder import load_replay, replay_files
 
-OUT = Path(__file__).resolve().parents[2] / "data" / "benchmark" / "latest.json"
+OUT_DIR = Path(__file__).resolve().parents[2] / "data" / "benchmark"
+OUT = OUT_DIR / "latest.json"          # Eastern Canada (the default region)
+
+
+def out_path(region: str) -> Path:
+    return OUT if region == "east_canada" else OUT_DIR / f"{region}.json"
 
 ALL_LLM_SYSTEM = (
     "You are an AI agent that helps airline dispatchers avoid warming contrails. For the aircraft below, "
@@ -42,20 +47,21 @@ ALL_LLM_SYSTEM = (
 )
 
 
-def flagged_cycles() -> list[int]:
+def flagged_cycles(region: str = "east_canada") -> list[int]:
     """Indexes of the recorded cycles that have at least one flagged flight."""
     out = []
-    for i in range(len(replay_files())):
-        _, assessments, _ = assess_cycle(load_replay(i))
+    for i in range(len(replay_files(region))):
+        _, assessments, _ = assess_cycle(load_replay(i, region))
         if any(a.flagged for a in assessments):
             out.append(i)
     return out
 
 
-def pick_flights(max_flights: int, index: int | None = None) -> tuple[int, dict, list[str]]:
+def pick_flights(max_flights: int, index: int | None = None,
+                 region: str = "east_canada") -> tuple[int, dict, list[str]]:
     """A recorded cycle with a flagged flight (the first one, or `index`): its flagged flights + the first others."""
-    for i in ([index] if index is not None else range(len(replay_files()))):
-        data = load_replay(i)
+    for i in ([index] if index is not None else range(len(replay_files(region)))):
+        data = load_replay(i, region)
         aircraft, assessments, _ = assess_cycle(data)
         flagged = [a.icao24 for a in assessments if a.flagged]
         if flagged:
@@ -63,7 +69,7 @@ def pick_flights(max_flights: int, index: int | None = None) -> tuple[int, dict,
             others = [ac.icao24 for ac in aircraft if ac.icao24 in assessed and ac.icao24 not in flagged]
             keep = (flagged + others)[:max_flights]
             data = {**data, "aircraft": [a for a in data["aircraft"] if a["icao24"] in keep]}
-            return i, data, flagged
+            return i, data, [f for f in flagged if f in keep]   # only score the flights actually tested
     raise RuntimeError("No recorded cycle with a flagged flight in data/replay/")
 
 
@@ -111,10 +117,11 @@ def run_all_llm(data: dict) -> dict:
     return {"totals": totals, "answers": answers}
 
 
-def run_benchmark(max_flights: int | None = None, index: int | None = None, save: bool = True) -> dict:
+def run_benchmark(max_flights: int | None = None, index: int | None = None, save: bool = True,
+                  region: str = "east_canada") -> dict:
     """One cycle (the first flagged one, or `index`)."""
     max_flights = max_flights or config.BENCHMARK_MAX_FLIGHTS
-    index, data, flagged = pick_flights(max_flights, index)
+    index, data, flagged = pick_flights(max_flights, index, region)
 
     # Mode B first (the real agent), then Mode A
     t0 = time.perf_counter()
@@ -138,7 +145,7 @@ def run_benchmark(max_flights: int | None = None, index: int | None = None, save
                "granite_calls": r.local_llm_calls, "cloud_llm_calls": r.llm_calls, "physics_ms": r.physics_ms,
                "ms": round(cascade_ms, 1), "local_wh": round(r.local_llm_energy_wh, 4)}
     result = {
-        "cycle": replay_files()[index].name, "flights": len(data["aircraft"]), "flagged_by_physics": len(flagged),
+        "cycle": replay_files(region)[index].name, "region": region, "flights": len(data["aircraft"]), "flagged_by_physics": len(flagged),
         "llm": config.GRANITE_MODEL,
         "all_llm": {"model_calls": a["calls"], "input_tokens": a["input_tokens"], "output_tokens": a["output_tokens"],
                     "ms": a["ms"], "local_wh": a["wh"]},
@@ -166,17 +173,17 @@ def run_benchmark(max_flights: int | None = None, index: int | None = None, save
         "measured_at": int(time.time()),
     }
     if save:
-        OUT.parent.mkdir(parents=True, exist_ok=True)
-        OUT.write_text(json.dumps(result, indent=1), encoding="utf-8")
+        out_path(region).parent.mkdir(parents=True, exist_ok=True)
+        out_path(region).write_text(json.dumps(result, indent=1), encoding="utf-8")
     return result
 
 
-def run_all(max_flights: int | None = None) -> dict:
+def run_all(max_flights: int | None = None, region: str = "east_canada") -> dict:
     """Every recorded cycle with a flagged flight, then the totals (same schema as run_benchmark + per_cycle)."""
     runs = []
-    for i in flagged_cycles():
-        print(f"  cycle {replay_files()[i].name}...", flush=True)
-        runs.append(run_benchmark(max_flights, i, save=False))
+    for i in flagged_cycles(region):
+        print(f"  {region} cycle {replay_files(region)[i].name}...", flush=True)
+        runs.append(run_benchmark(max_flights, i, save=False, region=region))
     if not runs:
         raise RuntimeError("No recorded cycle with a flagged flight in data/replay/")
     total = lambda side, key: sum(r[side][key] for r in runs)  # noqa: E731
@@ -188,7 +195,7 @@ def run_all(max_flights: int | None = None) -> dict:
     found = [frac(r["quality"]["contrails_found_by_all_llm"]) for r in runs]
     same = [frac(r["quality"]["same_action_on_flagged"]) for r in runs]
     result = {
-        "cycle": f"{len(runs)} cycles ({', '.join(r['cycle'].removesuffix('.json') for r in runs)})",
+        "cycle": f"{len(runs)} cycles ({', '.join(r['cycle'].removesuffix('.json') for r in runs)})", "region": region,
         "flights": sum(r["flights"] for r in runs),
         "flagged_by_physics": sum(r["flagged_by_physics"] for r in runs),
         "llm": runs[0]["llm"],
@@ -207,6 +214,6 @@ def run_all(max_flights: int | None = None) -> dict:
         "per_cycle": runs,
         "measured_at": int(time.time()),
     }
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(result, indent=1), encoding="utf-8")
+    out_path(region).parent.mkdir(parents=True, exist_ok=True)
+    out_path(region).write_text(json.dumps(result, indent=1), encoding="utf-8")
     return result
