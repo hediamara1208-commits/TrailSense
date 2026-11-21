@@ -8,7 +8,7 @@
 **Objectif :** des avions réels, une météo réelle, un risque de contrail correct et défendable. C'est la partie la plus risquée : Dawud s'y concentre, sans autre tâche.
 
 - [ ] **D1 · Ven soir (urgent)** `sources/opensky.py` : avions en croisière au-dessus du Québec.
-- [ ] **D2 · Ven soir (urgent)** `sources/recorder.py` : lancer l'enregistrement de nuit. **Avions toutes les 5-10 min (`RECORD_INTERVAL_S`), météo toutes les heures** : ne pas épuiser les crédits OpenSky.
+- [ ] **D2 · Ven soir (urgent)** `sources/recorder.py` : lancer l'enregistrement de nuit. **Avions toutes les 2-5 min (`RECORD_S`), avec un compte OpenSky gratuit, météo toutes les heures** : ne pas épuiser les crédits OpenSky.
 - [ ] **D3 · Ven soir / sam matin** `sources/weather.py` : profil Open-Meteo + cache. Vérifier la convention de l'humidité.
 - [ ] **D4 · Sam matin** `physics/contrails.py` : RHi, critère de Schmidt-Appleman, interpolation, jour/nuit, `assess()` + `tests/test_physics.py`.
 - [ ] **D5 · Sam après-midi (après 12 h)** `physics/fuel.py` + `docs/hypotheses.md`.

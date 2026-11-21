@@ -32,7 +32,7 @@ class LevelWeather:
     pressure_hpa: float      # 300, 275, 250, 225, 200
     altitude_ft: float       # depuis la hauteur géopotentielle
     temperature_c: float
-    rh_water_pct: float      # humidité relative / eau (à vérifier : convention Open-Meteo)
+    rh_pct: float            # humidité relative telle que fournie par GFS ; convention dans config.RH_CONVENTION
 
 
 @dataclass
@@ -58,14 +58,21 @@ class LevelRisk:
 
 @dataclass
 class RiskAssessment:
-    """Résultat du filtre physique pour un avion : niveau actuel et options ±2 000 ft."""
-    aircraft: Aircraft
+    """Résultat du filtre physique pour un avion : niveau actuel et options ±2 000 ft.
+
+    Tous les chiffres d'arbitrage sont calculés en Python (physique, Dawud).
+    Jev ne fait AUCUN calcul : il choisit à partir de ces chiffres.
+    """
+    icao24: str                  # renvoie à Aircraft.icao24 (plus léger que l'objet complet)
     current: LevelRisk
     climb: LevelRisk | None      # FL + 20 (même parité)
     descend: LevelRisk | None    # FL - 20
     is_night: bool               # contrails de nuit = toujours réchauffants
     flagged: bool                # True si current.persistent -> envoyé à Jev
-    fuel_penalty_kg: dict[str, float] = field(default_factory=dict)  # {"climb": .., "descend": ..}
+    minutes_in_issr: float = 0.0  # temps estimé dans la zone sursaturée en glace au niveau actuel
+    fuel_penalty_kg: dict[str, float] = field(default_factory=dict)         # {"climb": .., "descend": ..}
+    warming_avoided_co2e_kg: dict[str, float] = field(default_factory=dict) # réchauffement évité, en CO2e
+    net_benefit_co2e_kg: dict[str, float] = field(default_factory=dict)     # évité - CO2 du carburant en plus
 
 
 # ---------- Agent (Dawud) ----------

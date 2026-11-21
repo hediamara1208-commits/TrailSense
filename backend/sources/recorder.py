@@ -13,7 +13,7 @@ def record_cycle() -> str:
     """Récupère avions + météo une fois et écrit data/replay/<timestamp>.json. Renvoie le chemin.
 
     TODO: à lancer en boucle vendredi soir, avec les limites de config.py :
-    - avions toutes les RECORD_INTERVAL_S (600 s) pour ne pas épuiser les crédits OpenSky ;
+    - avions toutes les RECORD_S (300 s, compte OpenSky recommandé) pour ne pas épuiser les crédits OpenSky ;
     - météo toutes les RECORD_WEATHER_INTERVAL_S (3600 s), GFS ne change que toutes les 6 h.
     Gérer l'erreur 429 : attendre X-Rate-Limit-Retry-After-Seconds, ne pas planter.
     """

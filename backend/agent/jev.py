@@ -16,7 +16,9 @@ from backend.models import Decision, RiskAssessment
 
 
 def build_state(assessment: RiskAssessment) -> str:
-    """Résumé texte/JSON compact du vol : niveau, T et RHi aux 3 niveaux, jour/nuit, pénalité carburant."""
+    """Résumé texte/JSON compact du vol : niveau, T et RHi aux 3 niveaux, jour/nuit,
+    minutes_in_issr, et pour chaque option : carburant, réchauffement évité, bilan net (déjà calculés).
+    Jev est mauvais en calcul : on lui donne les chiffres, il choisit."""
     raise NotImplementedError
 
 
