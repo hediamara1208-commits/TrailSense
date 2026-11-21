@@ -13,7 +13,7 @@ Status: ✅ verified against the source, ⚠️ correct but needs care when phra
 ## Suggested README wording
 > Avoiding them works on the flights that follow the plan (−54 % in a 2023 Google / American Airlines test, −62 % in a 2025 randomised trial),
 > but adoption is the bottleneck: only 112 of ~1,200 eligible flights flew the avoidance plan, so the whole group saw −11.6 %
-> (Sankar et al., 2026). That is exactly the dispatcher's problem ContrailWatch addresses.
+> (Sankar et al., 2026). That is exactly the dispatcher's problem TrailSense addresses.
 
 ## Links
 - Lee et al. 2021: https://doi.org/10.1016/j.atmosenv.2020.117834
