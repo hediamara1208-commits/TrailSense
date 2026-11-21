@@ -24,7 +24,7 @@ Lovable domains; set `VITE_API_BASE=http://localhost:8000` (Chrome may ask to al
 
 ## Prompt 1 (paste as is)
 
-Build a single-page dashboard called **ContrailWatch** for an airline dispatcher named Sophie. Dark theme, calm and professional (an aviation operations look).
+Build a single-page dashboard called **TrailSense** for an airline dispatcher named Sophie. Dark theme, calm and professional (an aviation operations look).
 
 Data: one JSON "snapshot" (example below) with `aircraft`, `assessments`, `decisions`, `advisories` and `receipt`, joined by `icao24`. Put ALL data loading in one function `fetchSnapshot(threshold)` in `src/lib/api.ts`. For now it returns the example below (with each decision's `route` recomputed: "auto" if `confidence >= threshold`, else "human_review"). Later it will call `GET /api/snapshot?mode=replay&threshold=<value>` prefixed by `import.meta.env.VITE_API_BASE ?? ""` (empty = same origin).
 

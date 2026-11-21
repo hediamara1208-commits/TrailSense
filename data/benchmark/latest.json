@@ -10,7 +10,7 @@
   "ms": 1403045.5,
   "local_wh": 8.5539
  },
- "contrailwatch": {
+ "trailsense": {
   "model_calls": 6,
   "jev_calls": 3,
   "jev_input_tokens": 2400,
@@ -33,19 +33,19 @@
   "flagged": [
    {
     "callsign": "AAL278",
-    "contrailwatch": "climb_2000",
+    "trailsense": "climb_2000",
     "all_llm": "climb_2000",
     "all_llm_says_persistent": true
    },
    {
     "callsign": "UAL46",
-    "contrailwatch": "climb_2000",
+    "trailsense": "climb_2000",
     "all_llm": "climb_2000",
     "all_llm_says_persistent": true
    },
    {
     "callsign": "UPS214",
-    "contrailwatch": "descend_2000",
+    "trailsense": "descend_2000",
     "all_llm": "climb_2000",
     "all_llm_says_persistent": true
    }
@@ -69,7 +69,7 @@
     "ms": 501035.9,
     "local_wh": 3.0771
    },
-   "contrailwatch": {
+   "trailsense": {
     "model_calls": 2,
     "jev_calls": 1,
     "jev_input_tokens": 802,
@@ -92,7 +92,7 @@
     "flagged": [
      {
       "callsign": "AAL278",
-      "contrailwatch": "climb_2000",
+      "trailsense": "climb_2000",
       "all_llm": "climb_2000",
       "all_llm_says_persistent": true
      }
@@ -117,7 +117,7 @@
     "ms": 461986.7,
     "local_wh": 2.8152
    },
-   "contrailwatch": {
+   "trailsense": {
     "model_calls": 2,
     "jev_calls": 1,
     "jev_input_tokens": 800,
@@ -140,7 +140,7 @@
     "flagged": [
      {
       "callsign": "UAL46",
-      "contrailwatch": "climb_2000",
+      "trailsense": "climb_2000",
       "all_llm": "climb_2000",
       "all_llm_says_persistent": true
      }
@@ -165,7 +165,7 @@
     "ms": 440022.9,
     "local_wh": 2.6616
    },
-   "contrailwatch": {
+   "trailsense": {
     "model_calls": 2,
     "jev_calls": 1,
     "jev_input_tokens": 798,
@@ -188,7 +188,7 @@
     "flagged": [
      {
       "callsign": "UPS214",
-      "contrailwatch": "descend_2000",
+      "trailsense": "descend_2000",
       "all_llm": "climb_2000",
       "all_llm_says_persistent": true
      }

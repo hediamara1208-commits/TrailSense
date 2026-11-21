@@ -38,7 +38,7 @@ def one_cycle(tmp_path, monkeypatch):
 def test_benchmark_compares_both_agents(one_cycle):
     r = all_llm.run_benchmark(20)
     assert one_cycle == ["WET350", "DRY410"]                  # the all-LLM agent sees every aircraft
-    assert r["all_llm"]["model_calls"] == 2 and r["contrailwatch"]["model_calls"] == 0
+    assert r["all_llm"]["model_calls"] == 2 and r["trailsense"]["model_calls"] == 0
     assert r["quality"]["contrails_found_by_all_llm"] == "1/1"
     assert r["quality"]["same_action_on_flagged"] == "1/1"
     assert all_llm.OUT.exists()

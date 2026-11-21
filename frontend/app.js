@@ -1,4 +1,4 @@
-// [HEDI] ContrailWatch interface.
+// [HEDI] TrailSense interface.
 // Flow: ask the API for a Snapshot -> draw one dot per plane -> click a dot -> details panel.
 
 const COLORS = { grey: "#9aa0a6", orange: "#f29d38", green: "#2e9e6b", purple: "#7b5cd6" };
