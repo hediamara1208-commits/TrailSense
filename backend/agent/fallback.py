@@ -1,14 +1,14 @@
-"""[HEDI] Plan B sans Jev : règle codée en dur qui prend le relais si l'API Jev tombe
-ou si l'accès anticipé bloque (config.USE_JEV = False, ou exception dans jev.decide()).
+"""[HEDI] Plan B without Jev: a hard-coded rule that takes over if the Jev API is down
+or early access is blocked (config.USE_JEV = False, or an exception in jev.decide()).
 
-Même entrée, même sortie que jev.decide(), pour que pipeline.py bascule sans rien changer d'autre.
+Same input and output as jev.decide(), so pipeline.py can switch without changing anything else.
 
-Règle proposée :
-- Parmi climb et descend, garder les options dont le niveau n'est PAS persistant.
-- Choisir celle qui a le plus grand net_benefit_co2e_kg, s'il est positif.
-- Sinon : MAINTAIN.
-- confidence = 1.0 si nuit et RHi > 110 %, sinon 0.6 (donc revue humaine avec le seuil par défaut).
-Dans l'interface, afficher clairement "décision : règle de repli" pour rester honnête.
+Proposed rule:
+- Among climb and descend, keep the options whose level is NOT persistent.
+- Pick the one with the largest net_benefit_co2e_kg, if it is positive.
+- Otherwise: MAINTAIN.
+- confidence = 1.0 at night with RHi > 110 %, otherwise 0.6 (so human review with the default threshold).
+In the interface, clearly show "decision: fallback rule" to stay honest.
 """
 from backend.models import Decision, RiskAssessment
 
