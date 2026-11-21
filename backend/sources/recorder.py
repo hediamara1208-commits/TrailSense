@@ -3,7 +3,8 @@
 Pourquoi : le jury passe dimanche, en plein jour, avec un Wi-Fi incertain.
 On enregistre le ciel de nuit (contrails de nuit = les plus réchauffants) et on le rejoue.
 
-Format : un fichier JSON par cycle dans data/replay/<timestamp>.json :
+Format : un fichier JSON par cycle dans data/replay/<timestamp>.json
+(la météo couvre toute la BBOX sur une grille RECORD_GRID_DEG ; utiliser nearest_profile()) :
   {"timestamp": int, "aircraft": [Aircraft...], "weather": [WeatherProfile...]}
 
 Lancer toute la nuit :   python -m backend.sources.recorder
@@ -38,7 +39,9 @@ def record_cycle(with_weather: bool = True) -> str | None:
     ts = max(a.timestamp for a in planes)
     profiles = []
     if with_weather:
-        profs = weather.get_profiles_batch([(a.lat, a.lon) for a in planes], ts)
+        # Grille fixe sur toute la BBOX : chaque avion rejoué (même arrivé plus tard
+        # dans l'heure, dans une autre cellule) aura un profil proche.
+        profs = weather.get_profiles_batch(grid_points(), ts)
         profiles = [asdict(p) for p in profs.values()]
     REPLAY_DIR.mkdir(parents=True, exist_ok=True)
     path = REPLAY_DIR / f"{ts}.json"
@@ -47,6 +50,22 @@ def record_cycle(with_weather: bool = True) -> str | None:
                                 "weather": profiles}))
     log.info("%s : %d avions, %d profils météo", path.name, len(planes), len(profiles))
     return str(path)
+
+
+def grid_points(bbox: dict | None = None, step: float | None = None) -> list[tuple[float, float]]:
+    """Points d'une grille régulière couvrant la BBOX (pas RECORD_GRID_DEG)."""
+    bbox, step = bbox or config.BBOX, step or config.RECORD_GRID_DEG
+    n_lat = int(round((bbox["lamax"] - bbox["lamin"]) / step)) + 1
+    n_lon = int(round((bbox["lomax"] - bbox["lomin"]) / step)) + 1
+    return [(bbox["lamin"] + i * step, bbox["lomin"] + j * step)
+            for i in range(n_lat) for j in range(n_lon)]
+
+
+def nearest_profile(profiles: list[dict], lat: float, lon: float) -> dict | None:
+    """Profil météo (dict, tel que dans un fichier de replay) le plus proche d'un avion."""
+    if not profiles:
+        return None
+    return min(profiles, key=lambda p: (p["lat"] - lat) ** 2 + (p["lon"] - lon) ** 2)
 
 
 def replay_files() -> list[Path]:
