@@ -1,13 +1,13 @@
-"""[DAWUD] Passe la physique sur tout l'enregistrement de la nuit.
+"""[DAWUD] Run the physics over the whole overnight recording.
 
     python -m backend.physics.scan
 
-Affiche, pour chaque cycle de data/replay/ : avions, vols signalés, nuit/jour.
-Puis la distribution des humidités en dessous de -40 °C, pour trancher RH_CONVENTION :
-- valeurs qui s'empilent juste sous 100 % sans jamais dépasser -> "ice" (plafonnée) ;
-- valeurs > 100 % -> "ice" sans plafond ;
-- jamais au-dessus de ~70 % même dans les nuages -> plutôt "water".
-Sert aussi à choisir les cycles les plus "humides" pour la démo.
+Prints, for each cycle in data/replay/: aircraft, flagged flights, night/day.
+Then the humidity distribution below -40 °C, to settle RH_CONVENTION:
+- values piling up just below 100 % and never above -> "ice" (capped);
+- values > 100 % -> "ice" without cap;
+- never above ~70 % even in clouds -> rather "water".
+Also used to pick the most "humid" cycles for the demo.
 """
 from __future__ import annotations
 
@@ -27,13 +27,13 @@ def to_profile(d: dict) -> WeatherProfile:
 def main() -> None:
     files = replay_files()
     if not files:
-        print("Aucun fichier dans data/replay/")
+        print("No file in data/replay/")
         return
     rh_bins: Counter = Counter()
     rh_max = 0.0
     best = []
     last_weather: list = []
-    print(f"{'cycle':>12} {'heure UTC':>9} {'avions':>6} {'signalés':>8}  nuit")
+    print(f"{'cycle':>12} {'UTC time':>9} {'aircraft':>8} {'flagged':>7}  night")
     for f in files:
         data = json.loads(f.read_text())
         weather = data.get("weather") or last_weather
@@ -51,15 +51,15 @@ def main() -> None:
         ts = data["timestamp"]
         hhmm = f"{ts // 3600 % 24:02d}:{ts // 60 % 60:02d}"
         night = is_night(46.5, -72.0, ts)
-        print(f"{f.stem:>12} {hhmm:>9} {len(data['aircraft']):>6} {len(flagged):>8}  {'oui' if night else 'non'}"
+        print(f"{f.stem:>12} {hhmm:>9} {len(data['aircraft']):>8} {len(flagged):>7}  {'yes' if night else 'no'}"
               + (f"   {', '.join(flagged[:4])}" if flagged else ""))
         best.append((len(flagged), f.stem))
-    print("\nHumidité à T < -40 °C (nb de valeurs par tranche de 10 %) :")
+    print("\nHumidity at T < -40 °C (number of values per 10 % bin):")
     for b in sorted(rh_bins):
         print(f"  {b:>3}-{b + 9:<3} % : {'#' * min(rh_bins[b], 60)} {rh_bins[b]}")
     print(f"  max = {rh_max} %")
     top = sorted(best, reverse=True)[:5]
-    print("\nCycles les plus intéressants pour la démo :", ", ".join(f"{s} ({n} vols)" for n, s in top))
+    print("\nBest cycles for the demo:", ", ".join(f"{s} ({n} flights)" for n, s in top))
 
 
 if __name__ == "__main__":

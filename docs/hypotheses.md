@@ -1,42 +1,42 @@
-# Hypothèses physiques de ContrailWatch
+# ContrailWatch physical assumptions
 
-Toutes les valeurs sont réglables dans `backend/config.py`. Ce qui est **à vérifier** est marqué ⚠️.
+Every value is tunable in `backend/config.py`. Anything still **to be checked** is marked ⚠️.
 
-## Données
-| Sujet | Choix | Pourquoi |
+## Data
+| Topic | Choice | Why |
 |---|---|---|
-| Avions | OpenSky, FL290-410, \|vitesse verticale\| ≤ 2,5 m/s | On ne conseille que des avions en palier de croisière. |
-| Météo | Open-Meteo GFS, niveaux 350 → 150 hPa | Encadre FL265 à FL450. Interpolation linéaire en ln(p). |
-| Niveau de vol → pression | Atmosphère standard ISA | Un FL est une altitude-pression (calage 1013,25 hPa). FL350 = 238,4 hPa. |
-| Convention d'humidité | `RH_CONVENTION = "ice"` ⚠️ | Premier enregistrement : RH = 100 % pile à −49,5 °C. Si c'était /eau, cela ferait ~155 % /glace, au-delà du seuil de congélation homogène (~145-150 %) : irréaliste. À confirmer sur la distribution de la nuit (valeurs qui s'empilent sous 100 % sans jamais le dépasser = /glace plafonnée). |
+| Aircraft | OpenSky, FL290-410, \|vertical rate\| ≤ 2.5 m/s | We only advise aircraft in level cruise. |
+| Weather | Open-Meteo GFS, levels 350 → 150 hPa | Brackets FL265 to FL450. Linear interpolation in ln(p). |
+| Flight level → pressure | ISA standard atmosphere | A FL is a pressure altitude (1013.25 hPa setting). FL350 = 238.4 hPa. |
+| Humidity convention | `RH_CONVENTION = "ice"` (capped at 100 %) | First recording: RH = exactly 100 % at −49.5 °C. Over water, that would mean ~155 % over ice, beyond the homogeneous freezing threshold (~145-150 %): unphysical. Confirmed by the overnight distribution: values pile up at 80-100 % and never exceed 100. |
 
-## Formation : critère de Schmidt-Appleman (Schumann, 1996)
-- Pente de mélange G = EI_H2O · cp · p / (ε · Q · (1 − η)), avec EI_H2O = 1,23, cp = 1004 J/kg/K, ε = 0,622, Q = 43,2 MJ/kg, **η = 0,35** (moteurs modernes : 0,3 à 0,4).
-- Seuil sec T_LM = −46,46 + 9,43 ln(G − 0,053) + 0,720 ln²(G − 0,053) (°C, G en Pa/K) → environ −41 °C à 250 hPa.
-- Le contrail se forme si T < T_LM et e_amb ≥ e_sat,eau(T_LM) − G (T_LM − T).
-- Pressions de saturation : Sonntag (1994).
+## Formation: Schmidt-Appleman criterion (Schumann, 1996)
+- Mixing-line slope G = EI_H2O · cp · p / (ε · Q · (1 − η)), with EI_H2O = 1.23, cp = 1004 J/kg/K, ε = 0.622, Q = 43.2 MJ/kg, **η = 0.35** (modern engines: 0.3 to 0.4).
+- Dry threshold T_LM = −46.46 + 9.43 ln(G − 0.053) + 0.720 ln²(G − 0.053) (°C, G in Pa/K) → about −41 °C at 250 hPa.
+- The contrail forms if T < T_LM and e_amb ≥ e_sat,water(T_LM) − G (T_LM − T).
+- Saturation pressures: Sonntag (1994).
 
-## Persistance
-- RHi ≥ **95 %** (`RHI_THRESHOLD`) ⚠️ C'est un **choix de réglage** : GFS plafonne l'humidité à 100 % et sous-estime la sursaturation, connue pour être mal représentée dans les modèles (pycontrails applique aussi une correction d'humidité). Le seuil change le nombre de vols signalés : à dire au jury.
-- Longueur traversée : **mesurée le long du cap** de l'avion, par pas de 25 km dans la grille météo de 1°, tant que le niveau actuel reste sursaturé (max 800 km ; arrêt en bord de grille). Le contrail évité pour une option = les km où le niveau actuel est sursaturé mais pas le niveau visé. Sans grille (repli) : **150 km** (`ISSR_TYPICAL_KM`), longueur moyenne d'une zone sursaturée le long des routes (Gierens & Spichtinger, 2000). Limites : cap constant, vent et mouvement de la zone ignorés.
+## Persistence
+- RHi ≥ **95 %** (`RHI_THRESHOLD`) ⚠️ This is a **tuning choice**: GFS caps humidity at 100 % and underestimates supersaturation, which models are known to represent poorly (pycontrails also applies a humidity correction). The threshold changes how many flights are flagged: say so to the judges.
+- Length crossed: **measured along the aircraft heading**, in 25 km steps through the 1° weather grid, while the current level stays supersaturated (max 800 km; stops at the grid edge). Contrail avoided by an option = the km where the current level is supersaturated but the target level is not. Fallback without a grid: **150 km** (`ISSR_TYPICAL_KM`), the mean length of an ice-supersaturated region along flight tracks (Gierens & Spichtinger, 2000). Limits: constant heading, wind and region motion ignored.
 
-## Carburant
-- Type d'avion inconnu → consommation générique **3 000 kg/h**.
-- Surconsommation pendant la déviation : **+1,5 % en montée, +2 % en descente** (ordre de grandeur de l'essai Google / American Airlines 2023 : ~2 % sur les vols déviés).
-- **3,16 kg de CO₂ par kg** de kérosène.
+## Fuel
+- Aircraft type unknown → generic fuel flow of **3,000 kg/h**.
+- Extra burn during the deviation: **+1.5 % climbing, +2 % descending** (order of magnitude of the 2023 Google / American Airlines trial: ~2 % on diverted flights).
+- **3.16 kg of CO₂ per kg** of kerosene.
 
-## Réchauffement évité (l'estimation la plus incertaine)
-- Valeurs retenues : **50 kg CO2e/km la nuit, 15 kg CO2e/km le jour** (horizon 100 ans), fourchette ÷3 à ×3 affichée.
-- D'où ça vient (Borella et al., *ACP* 24, 9401-9417, 2024, https://acp.copernicus.org/articles/24/9401/2024/) :
-  - énergie de forçage (EF) moyenne des vols formant des contrails : **~9,6 × 10¹⁰ J par km** (médiane 2,9 × 10¹⁰, 90e centile 2,8 × 10¹¹) ;
-  - efficacité climatique des contrails : **0,37** ;
-  - AGWP100 du CO₂ ≈ 9,2 × 10⁻¹⁴ W m⁻² an kg⁻¹ (GIEC AR5), soit ≈ 1,48 × 10⁹ J par kg de CO₂ sur 100 ans.
-  - → 9,6 × 10¹⁰ × 0,37 / 1,48 × 10⁹ ≈ **24 kg CO2e par km** en moyenne jour + nuit. La nuit pèse plus (pas de refroidissement solaire), le jour moins, d'où 50 / 15.
-  - ✅ Vérifié dans l'article (Sect. 3) : « Contrail energy forcing per flown distance ranges from −8.7 × 10¹¹ to 5.0 × 10¹² J km⁻¹, with a mean of 9.6 × 10¹⁰ J km⁻¹ and a median of 2.9 × 10¹⁰ J km⁻¹. » Sur l'échantillon, 55 % des vols forment des contrails, dont 80 % réchauffants ; l'énergie ajoutée par les contrails réchauffants est 23 fois celle retirée par les refroidissants.
-  - **Hypothèse prudente** : cette moyenne est par km *volé* (toute la longueur des vols formant des contrails), alors qu'on l'applique par km *de contrail*. Le réchauffement réel par km de contrail est donc plus élevé : notre bilan est sous-estimé, pas gonflé.
-  - Remarque : l'article donne 1,3 × 10¹⁰ J/km comme moyenne des seuls contrails réchauffants, inférieure à la moyenne globale, ce qui paraît incohérent (coquille probable). On s'appuie sur la moyenne globale.
-- Le choix de la métrique (GWP100, GWP20, ATR…) change fortement le résultat : c'est le sujet même de Borella et al. On utilise l'horizon 100 ans, comme pour le CO₂.
-- Robustesse : pour un avion à 500 kt, 150 km de zone sursaturée = 18 min, soit ~13 kg de carburant en plus (~42 kg CO₂) contre ~7,5 t CO2e évitées la nuit. Le bilan reste positif même avec un facteur divisé par 100, ce qui est cohérent avec Teoh et al. (2020) : ~59 % du forçage des contrails évité pour ~0,014 % de carburant en plus.
+## Avoided warming (the most uncertain estimate)
+- Values used: **50 kg CO2e/km at night, 15 kg CO2e/km by day** (100-year horizon), with a ÷3 to ×3 range shown.
+- Where it comes from (Borella et al., *ACP* 24, 9401-9417, 2024, https://acp.copernicus.org/articles/24/9401/2024/):
+  - mean energy forcing (EF) of contrail-forming flights: **~9.6 × 10¹⁰ J per km** (median 2.9 × 10¹⁰, 90th percentile 2.8 × 10¹¹);
+  - contrail climate efficacy: **0.37**;
+  - CO₂ AGWP100 ≈ 9.2 × 10⁻¹⁴ W m⁻² yr kg⁻¹ (IPCC AR5), i.e. ≈ 1.48 × 10⁹ J per kg of CO₂ over 100 years.
+  - → 9.6 × 10¹⁰ × 0.37 / 1.48 × 10⁹ ≈ **24 kg CO2e per km** on average, day and night. Night weighs more (no solar cooling), day less, hence 50 / 15.
+  - ✅ Verified in the paper (Sect. 3): "Contrail energy forcing per flown distance ranges from −8.7 × 10¹¹ to 5.0 × 10¹² J km⁻¹, with a mean of 9.6 × 10¹⁰ J km⁻¹ and a median of 2.9 × 10¹⁰ J km⁻¹." In their sample, 55 % of flights form contrails, 80 % of which are warming; warming contrails add 23 times more energy than cooling ones remove.
+  - **Conservative assumption**: this mean is per *flown* km (the full length of contrail-forming flights), while we apply it per km *of contrail*. The real warming per km of contrail is therefore higher: our benefit is underestimated, not inflated.
+  - Note: the paper gives 1.3 × 10¹⁰ J/km as the mean of warming contrails only, lower than the overall mean, which looks inconsistent (probably a typo). We rely on the overall mean.
+- The choice of metric (GWP100, GWP20, ATR…) changes the result a lot: that is the very topic of Borella et al. We use the 100-year horizon, as for CO₂.
+- Robustness: for an aircraft at 500 kt, 150 km of supersaturated region = 18 min, i.e. ~13 kg of extra fuel (~42 kg CO₂) versus ~7.5 t CO2e avoided at night. The benefit stays positive even with the factor divided by 100, consistent with Teoh et al. (2020): ~59 % of contrail forcing avoided for ~0.014 % extra fuel.
 
-## Ce qu'on ne modélise pas
-Le trafic réel et l'accord du contrôle aérien (l'outil est une aide à la décision pour le régulateur), le vent, le type d'avion, l'étendue réelle de la zone sursaturée, et l'effet radiatif détaillé (CoCiP).
+## What we do not model
+Real traffic and air traffic control approval (the tool is a decision aid for the flight dispatcher), wind, aircraft type, the true extent of the supersaturated region, and detailed radiative effects (CoCiP).

@@ -1,6 +1,6 @@
-"""[DAWUD] Tests de la physique : ce qu'on doit pouvoir défendre devant le jury.
+"""[DAWUD] Physics tests: what we must be able to defend in front of the judges.
 
-Lancer : python -m pytest -q
+Run: python -m pytest -q
 """
 import pytest
 
@@ -9,12 +9,12 @@ from backend.models import Aircraft, LevelWeather, WeatherProfile
 from backend.physics import contrails as c
 from backend.physics import fuel
 
-NIGHT_TS = 1795234233  # vendredi ~23 h 15 à Montréal
-DAY_TS = NIGHT_TS + 13 * 3600  # samedi ~12 h 15
+NIGHT_TS = 1795234233  # Friday ~11:15 pm in Montreal
+DAY_TS = NIGHT_TS + 13 * 3600  # Saturday ~12:15 pm
 
 
 def profile(rh_by_p: dict[int, float]) -> WeatherProfile:
-    """Profil réaliste (températures du premier enregistrement, Gaspésie) avec RH choisies."""
+    """Realistic profile (temperatures from the first recording, Gaspé) with chosen RH."""
     temps = {350: -39.0, 300: -49.5, 275: -53.5, 250: -58.5, 225: -62.5, 200: -61.0, 175: -57.5, 150: -55.5}
     return WeatherProfile(lat=49.0, lon=-64.0, valid_time=NIGHT_TS, levels=[
         LevelWeather(pressure_hpa=p, altitude_ft=0, temperature_c=t, rh_pct=rh_by_p.get(p, 30.0))
@@ -36,7 +36,7 @@ def test_ice_saturates_before_water():
 
 def test_water_convention_converts(monkeypatch):
     monkeypatch.setattr(config, "RH_CONVENTION", "water")
-    assert c.rh_ice(60, -50) > 90  # 60 % /eau à -50 °C ≈ 98 % /glace
+    assert c.rh_ice(60, -50) > 90  # 60 % over water at -50 °C ≈ 98 % over ice
 
 
 def test_isa_flight_levels():
@@ -45,7 +45,7 @@ def test_isa_flight_levels():
 
 
 def test_sac_threshold_order_of_magnitude():
-    # Schumann (1996) : T_LM ≈ -40 °C vers 250 hPa pour eta ~0,35
+    # Schumann (1996): T_LM ≈ -40 °C around 250 hPa for eta ~0.35
     assert -45 < c.sac_threshold_c(250) < -38
 
 
@@ -63,7 +63,7 @@ def test_day_night():
 
 
 def test_assess_flags_persistent_and_finds_dry_option():
-    # Couche saturée autour de 275-250 hPa (FL320-340), sèche au-dessus
+    # Saturated layer around 275-250 hPa (FL320-340), dry above
     prof = profile({275: 100, 250: 100, 225: 40})
     a = c.assess(plane(330), prof)
     assert a.flagged and a.current.persistent
@@ -81,7 +81,7 @@ def test_option_also_persistent_avoids_nothing():
     prof = profile({300: 100, 275: 100, 250: 100, 225: 100, 200: 100})
     a = c.assess(plane(350), prof)
     assert a.warming_avoided_co2e_kg["climb"] == 0
-    assert a.net_benefit_co2e_kg["climb"] < 0  # on brûlerait du carburant pour rien
+    assert a.net_benefit_co2e_kg["climb"] < 0  # we would burn fuel for nothing
 
 
 def test_night_weighs_more_than_day():
@@ -95,12 +95,12 @@ def test_out_of_profile_returns_none():
 def test_along_track_measures_issr_length():
     wet = profile({275: 100, 250: 100, 225: 40})
     dry = profile({})
-    # zone sursaturée sur les 100 premiers km vers l'est, puis sec
+    # supersaturated region over the first 100 km eastward, then dry
     def profile_at(lat, lon):
         return wet if lon < -64.0 + 100 / (111.2 * 0.656) else dry
     a = c.assess(Aircraft("x", "X", 49.0, -64.0, 33000, 330, 90.0, 500.0, NIGHT_TS), wet, profile_at=profile_at)
     assert a.flagged
-    assert 75 <= a.minutes_in_issr / 60 * 500 * 1.852 <= 130  # ~100 km, à un pas de 25 km près
+    assert 75 <= a.minutes_in_issr / 60 * 500 * 1.852 <= 130  # ~100 km, within one 25 km step
     assert a.warming_avoided_co2e_kg["climb"] > 0
 
 
@@ -111,5 +111,5 @@ def test_assess_cycle_on_replay_dict():
     data = {"timestamp": NIGHT_TS, "aircraft": [asdict(plane(330)), asdict(plane(500))],
             "weather": [asdict(prof)]}
     aircraft, assessments, stats = assess_cycle(data)
-    assert len(aircraft) == 2 and len(assessments) == 1  # FL500 hors profil -> écarté
+    assert len(aircraft) == 2 and len(assessments) == 1  # FL500 outside profile -> dropped
     assert stats["flagged_by_physics"] == 1

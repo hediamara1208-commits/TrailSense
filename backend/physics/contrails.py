@@ -1,22 +1,22 @@
-"""[DAWUD] Le cœur scientifique : ce contrail va-t-il se former, et va-t-il durer ?
+"""[DAWUD] The scientific core: will this contrail form, and will it persist?
 
-Deux conditions (toutes les deux nécessaires pour un contrail persistant) :
-1. Critère de Schmidt-Appleman (SAC) : le mélange gaz d'échappement + air ambiant
-   devient saturé par rapport à l'eau. Pente de la droite de mélange (Pa/K) :
+Two conditions (both required for a persistent contrail):
+1. Schmidt-Appleman criterion (SAC): the exhaust + ambient air mixture becomes
+   saturated with respect to water. Slope of the mixing line (Pa/K):
        G = EI_H2O * cp * p / (eps * Q * (1 - eta))
-   EI_H2O = 1,23 kg/kg (kérosène), cp = 1004 J/kg/K, eps = 0,622, Q = 43,2e6 J/kg, eta ≈ 0,35.
-   Température seuil (air sec) T_LM, approximation de Schumann (1996), éq. 31 :
-       T_LM [°C] = -46,46 + 9,43 ln(G - 0,053) + 0,720 ln²(G - 0,053)
-   Le contrail se forme si T < T_LM ET e_amb >= e_sat_eau(T_LM) - G (T_LM - T)
-   (la droite de mélange croise la courbe de saturation de l'eau).
-   Référence : Schumann (1996), "On conditions for contrail formation from aircraft exhausts".
-2. Persistance : l'air ambiant est sursaturé par rapport à la glace (RHi >= config.RHI_THRESHOLD).
+   EI_H2O = 1.23 kg/kg (kerosene), cp = 1004 J/kg/K, eps = 0.622, Q = 43.2e6 J/kg, eta ≈ 0.35.
+   Threshold temperature (dry air) T_LM, Schumann (1996) approximation, eq. 31:
+       T_LM [°C] = -46.46 + 9.43 ln(G - 0.053) + 0.720 ln²(G - 0.053)
+   The contrail forms if T < T_LM AND e_amb >= e_sat_water(T_LM) - G (T_LM - T)
+   (the mixing line crosses the water saturation curve).
+   Reference: Schumann (1996), "On conditions for contrail formation from aircraft exhausts".
+2. Persistence: ambient air is supersaturated with respect to ice (RHi >= config.RHI_THRESHOLD).
 
-Pressions de saturation : formules de Sonntag (1994), T en K, résultat en hPa.
-Niveau de vol -> pression : atmosphère standard ISA (un FL est une altitude-pression).
+Saturation pressures: Sonntag (1994) formulas, T in K, result in hPa.
+Flight level -> pressure: ISA standard atmosphere (a FL is a pressure altitude).
 
-Limite à dire au jury : les modèles météo captent mal ces zones sursaturées,
-donc on affiche des probabilités, pas des certitudes.
+Limitation to tell the judges: weather models capture these supersaturated regions poorly,
+so we show likelihoods, not certainties.
 """
 from __future__ import annotations
 
@@ -33,27 +33,27 @@ EPS = 0.622
 Q_FUEL = 43.2e6
 
 
-# ---------- Thermodynamique ----------
+# ---------- Thermodynamics ----------
 
 def e_sat_water_hpa(temperature_c: float) -> float:
-    """Pression de vapeur saturante par rapport à l'eau liquide (Sonntag 1994)."""
+    """Saturation vapour pressure over liquid water (Sonntag 1994)."""
     t = temperature_c + 273.15
     return math.exp(-6096.9385 / t + 16.635794 - 2.711193e-2 * t
                     + 1.673952e-5 * t ** 2 + 2.433502 * math.log(t))
 
 
 def e_sat_ice_hpa(temperature_c: float) -> float:
-    """Pression de vapeur saturante par rapport à la glace (Sonntag 1994)."""
+    """Saturation vapour pressure over ice (Sonntag 1994)."""
     t = temperature_c + 273.15
     return math.exp(-6024.5282 / t + 24.7219 + 1.0613868e-2 * t
                     - 1.3198825e-5 * t ** 2 - 0.49382577 * math.log(t))
 
 
 def rh_ice(rh_pct: float, temperature_c: float) -> float:
-    """Humidité relative par rapport à la glace, selon config.RH_CONVENTION.
+    """Relative humidity over ice, according to config.RH_CONVENTION.
 
-    - "ice"   : rh_pct est déjà par rapport à la glace -> tel quel (pas de double conversion).
-    - "water" : RHi = RHw * e_sat_eau(T) / e_sat_glace(T).
+    - "ice"   : rh_pct is already over ice -> returned as is (no double conversion).
+    - "water" : RHi = RHw * e_sat_water(T) / e_sat_ice(T).
     """
     if config.RH_CONVENTION == "ice":
         return rh_pct
@@ -61,7 +61,7 @@ def rh_ice(rh_pct: float, temperature_c: float) -> float:
 
 
 def vapour_pressure_hpa(rh_pct: float, temperature_c: float) -> float:
-    """Pression partielle de vapeur ambiante, quelle que soit la convention."""
+    """Ambient water vapour partial pressure, whatever the convention."""
     if config.RH_CONVENTION == "ice":
         return rh_pct / 100.0 * e_sat_ice_hpa(temperature_c)
     return rh_pct / 100.0 * e_sat_water_hpa(temperature_c)
@@ -72,7 +72,7 @@ def mixing_slope_pa_per_k(pressure_hpa: float, eta: float) -> float:
 
 
 def sac_threshold_c(pressure_hpa: float, eta: float | None = None) -> float:
-    """T_LM : au-dessus, aucun contrail ne peut se former, même en air saturé."""
+    """T_LM: above it, no contrail can form, even in saturated air."""
     g = mixing_slope_pa_per_k(pressure_hpa, config.SAC_ETA if eta is None else eta)
     x = math.log(g - 0.053)
     return -46.46 + 9.43 * x + 0.720 * x * x
@@ -80,7 +80,7 @@ def sac_threshold_c(pressure_hpa: float, eta: float | None = None) -> float:
 
 def sac_satisfied(temperature_c: float, pressure_hpa: float, rh_pct: float,
                   eta: float | None = None) -> bool:
-    """True si le critère de Schmidt-Appleman est rempli (le contrail se forme)."""
+    """True if the Schmidt-Appleman criterion is met (the contrail forms)."""
     eta = config.SAC_ETA if eta is None else eta
     t_lm = sac_threshold_c(pressure_hpa, eta)
     if temperature_c >= t_lm:
@@ -90,10 +90,10 @@ def sac_satisfied(temperature_c: float, pressure_hpa: float, rh_pct: float,
     return e_amb >= e_sat_water_hpa(t_lm) - g_hpa * (t_lm - temperature_c)
 
 
-# ---------- Interpolation verticale ----------
+# ---------- Vertical interpolation ----------
 
 def fl_to_pressure_hpa(flight_level: int) -> float:
-    """Atmosphère standard ISA : niveau de vol (altitude-pression) -> pression."""
+    """ISA standard atmosphere: flight level (pressure altitude) -> pressure."""
     h_ft = flight_level * 100.0
     if h_ft <= 36089.0:
         return 1013.25 * (1.0 - 6.8755856e-6 * h_ft) ** 5.2558797
@@ -101,8 +101,8 @@ def fl_to_pressure_hpa(flight_level: int) -> float:
 
 
 def interpolate(profile: WeatherProfile, pressure_hpa: float) -> tuple[float, float] | None:
-    """(T, RH) interpolés linéairement en ln(p). None si hors du profil (pas d'extrapolation)."""
-    levels = sorted(profile.levels, key=lambda lv: lv.pressure_hpa, reverse=True)  # du bas vers le haut
+    """(T, RH) interpolated linearly in ln(p). None if outside the profile (no extrapolation)."""
+    levels = sorted(profile.levels, key=lambda lv: lv.pressure_hpa, reverse=True)  # bottom to top
     for lo, hi in zip(levels, levels[1:]):
         if hi.pressure_hpa <= pressure_hpa <= lo.pressure_hpa:
             w = (math.log(lo.pressure_hpa) - math.log(pressure_hpa)) / \
@@ -113,7 +113,7 @@ def interpolate(profile: WeatherProfile, pressure_hpa: float) -> tuple[float, fl
 
 
 def level_risk(profile: WeatherProfile, flight_level: int) -> LevelRisk | None:
-    """Risque de contrail au niveau demandé. None si le niveau sort du profil météo."""
+    """Contrail risk at the requested level. None if the level is outside the weather profile."""
     p = fl_to_pressure_hpa(flight_level)
     tr = interpolate(profile, p)
     if tr is None:
@@ -125,10 +125,10 @@ def level_risk(profile: WeatherProfile, flight_level: int) -> LevelRisk | None:
                      sac_satisfied=sac, persistent=sac and rhi >= config.RHI_THRESHOLD)
 
 
-# ---------- Jour / nuit ----------
+# ---------- Day / night ----------
 
 def solar_elevation_deg(lat: float, lon: float, timestamp: int) -> float:
-    """Élévation du soleil (approximation à ~1°, suffisante pour jour/nuit)."""
+    """Sun elevation (~1° approximation, enough for day/night)."""
     dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
     n = dt.timetuple().tm_yday
     decl = math.radians(23.44) * math.sin(math.radians(360.0 / 365.0 * (n - 81)))
@@ -142,11 +142,11 @@ def solar_elevation_deg(lat: float, lon: float, timestamp: int) -> float:
 
 
 def is_night(lat: float, lon: float, timestamp: int) -> bool:
-    """Soleil sous l'horizon : le contrail ne fait que piéger la chaleur."""
+    """Sun below the horizon: the contrail only traps heat."""
     return solar_elevation_deg(lat, lon, timestamp) < 0.0
 
 
-# ---------- Évaluation complète ----------
+# ---------- Full assessment ----------
 
 def _option(profile: WeatherProfile, fl: int) -> LevelRisk | None:
     if not (config.OPTION_MIN_FL <= fl <= config.OPTION_MAX_FL):
@@ -160,7 +160,7 @@ KM_PER_DEG_LAT = 111.2
 
 
 def _step(lat: float, lon: float, heading_deg: float, km: float) -> tuple[float, float]:
-    """Point à `km` le long du cap (approximation locale plane, suffisante sur 25 km)."""
+    """Point `km` along the heading (local flat-earth approximation, fine over 25 km)."""
     h = math.radians(heading_deg)
     dlat = km * math.cos(h) / KM_PER_DEG_LAT
     dlon = km * math.sin(h) / (KM_PER_DEG_LAT * max(math.cos(math.radians(lat)), 0.1))
@@ -168,12 +168,12 @@ def _step(lat: float, lon: float, heading_deg: float, km: float) -> tuple[float,
 
 
 def issr_along_track(aircraft: Aircraft, profile_at, levels: dict[str, int]) -> dict[str, float]:
-    """Suit le cap de l'avion dans la grille météo tant que son niveau actuel est sursaturé.
+    """Follow the aircraft heading through the weather grid while its current level is supersaturated.
 
-    profile_at(lat, lon) -> WeatherProfile | None (None = hors des données : on s'arrête).
+    profile_at(lat, lon) -> WeatherProfile | None (None = outside the data: stop).
     levels = {"current": FL, "climb": FL+20, "descend": FL-20}.
-    Renvoie les km de contrail persistant au niveau actuel ("current"), et pour chaque option
-    les km où le niveau actuel est sursaturé MAIS pas le niveau visé (contrail réellement évité).
+    Returns the km of persistent contrail at the current level ("current"), and for each option
+    the km where the current level is supersaturated BUT the target level is not (contrail actually avoided).
     """
     km = {name: 0.0 for name in levels}
     lat, lon, d = aircraft.lat, aircraft.lon, 0.0
@@ -197,14 +197,14 @@ def issr_along_track(aircraft: Aircraft, profile_at, levels: dict[str, int]) -> 
 
 
 def assess(aircraft: Aircraft, profile: WeatherProfile, profile_at=None) -> RiskAssessment | None:
-    """Risque au niveau actuel, à +20 FL et à -20 FL, et le bilan chiffré de chaque option.
+    """Risk at the current level, at +20 FL and -20 FL, and the numeric trade-off of each option.
 
-    flagged = current.persistent. Jev ne calcule rien : il choisit à partir de ces chiffres.
-    None si le niveau actuel sort du profil météo.
+    flagged = current.persistent. Jev computes nothing: it chooses from these numbers.
+    None if the current level is outside the weather profile.
 
-    profile_at(lat, lon) (optionnel) : accès à la grille météo. Si fourni, on mesure la
-    longueur réelle de la zone sursaturée le long du cap (issr_along_track) ; sinon on prend
-    la longueur typique config.ISSR_TYPICAL_KM.
+    profile_at(lat, lon) (optional): access to the weather grid. If given, the actual length of
+    the supersaturated region along the heading is measured (issr_along_track); otherwise the
+    typical length config.ISSR_TYPICAL_KM is used.
     """
     current = level_risk(profile, aircraft.flight_level)
     if current is None:
@@ -232,7 +232,7 @@ def assess(aircraft: Aircraft, profile: WeatherProfile, profile_at=None) -> Risk
         for name, opt in options.items():
             if opt is None:
                 continue
-            # On reste au niveau dévié tant que l'avion traverse la zone sursaturée.
+            # The aircraft stays at the deviated level while crossing the supersaturated region.
             fuel_pen[name] = round(fuel.fuel_penalty_kg(None, minutes, name), 1)
             avoided[name] = round(avoided_km[name] * factor, 0)
             net[name] = round(fuel.net_benefit_co2e_kg(avoided[name], fuel_pen[name]), 0)
