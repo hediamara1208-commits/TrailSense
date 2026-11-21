@@ -12,7 +12,7 @@
 - [x] **D3 · Fri night / Sat morning** `sources/weather.py`: Open-Meteo profiles + cache. Humidity convention checked (`RH_CONVENTION = "ice"`, threshold `RHI_THRESHOLD = 95`).
 - [x] **D4 · Sat morning** `physics/contrails.py`: RHi, Schmidt-Appleman, interpolation, day/night, `assess()` + `tests/test_physics.py` (14 tests).
 - [x] **D5 · Sat afternoon** `physics/fuel.py` + `physics/cycle.py` (`assess_cycle()`) + ISSR length along the track + `docs/hypotheses.md` (Borella et al. 2024: 50 kg CO2e/km at night, 15 by day).
-- [ ] **D6 · Sat evening** Pitch, science part: the physics slide and the jury's physics questions.
+- [ ] **D6 · Sat evening** Pitch, science part: the physics slide and the jury's physics questions. *Draft in `docs/pitch_physics.md` (30 s script + 5 Q&A + backups); to rehearse.*
 - [x] **D7 · Sat 01:40** Multi-region recording (PR #2): `--region north_atlantic|europe|us_northeast|east_canada`, one terminal per region, `--once` snapshots, `scan [region]`. Weather budgets keep all regions under the Open-Meteo free tier.
 - [ ] **D8 · Sat night / morning** Pick the demo cycles: `python -m backend.physics.scan [region]`, commit the 5-10 best night cycles (most flagged flights) to `data/replay/`. Re-scan in the morning and swap if better ones appear.
 - [ ] **D9 · Sat afternoon** Integration with Hedi: help plug `assess_cycle()` into `pipeline.py` (H6), then sanity-check the agent's climb/descend decisions on 2-3 flagged flights.
