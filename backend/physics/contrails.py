@@ -154,11 +154,57 @@ def _option(profile: WeatherProfile, fl: int) -> LevelRisk | None:
     return level_risk(profile, fl)
 
 
-def assess(aircraft: Aircraft, profile: WeatherProfile) -> RiskAssessment | None:
+TRACK_STEP_KM = 25.0
+TRACK_MAX_KM = 800.0
+KM_PER_DEG_LAT = 111.2
+
+
+def _step(lat: float, lon: float, heading_deg: float, km: float) -> tuple[float, float]:
+    """Point à `km` le long du cap (approximation locale plane, suffisante sur 25 km)."""
+    h = math.radians(heading_deg)
+    dlat = km * math.cos(h) / KM_PER_DEG_LAT
+    dlon = km * math.sin(h) / (KM_PER_DEG_LAT * max(math.cos(math.radians(lat)), 0.1))
+    return lat + dlat, lon + dlon
+
+
+def issr_along_track(aircraft: Aircraft, profile_at, levels: dict[str, int]) -> dict[str, float]:
+    """Suit le cap de l'avion dans la grille météo tant que son niveau actuel est sursaturé.
+
+    profile_at(lat, lon) -> WeatherProfile | None (None = hors des données : on s'arrête).
+    levels = {"current": FL, "climb": FL+20, "descend": FL-20}.
+    Renvoie les km de contrail persistant au niveau actuel ("current"), et pour chaque option
+    les km où le niveau actuel est sursaturé MAIS pas le niveau visé (contrail réellement évité).
+    """
+    km = {name: 0.0 for name in levels}
+    lat, lon, d = aircraft.lat, aircraft.lon, 0.0
+    while d < TRACK_MAX_KM:
+        prof = profile_at(lat, lon)
+        if prof is None:
+            break
+        cur = level_risk(prof, levels["current"])
+        if cur is None or not cur.persistent:
+            break
+        km["current"] += TRACK_STEP_KM
+        for name, fl in levels.items():
+            if name == "current":
+                continue
+            opt = level_risk(prof, fl)
+            if opt is not None and not opt.persistent:
+                km[name] += TRACK_STEP_KM
+        lat, lon = _step(lat, lon, aircraft.heading_deg, TRACK_STEP_KM)
+        d += TRACK_STEP_KM
+    return km
+
+
+def assess(aircraft: Aircraft, profile: WeatherProfile, profile_at=None) -> RiskAssessment | None:
     """Risque au niveau actuel, à +20 FL et à -20 FL, et le bilan chiffré de chaque option.
 
     flagged = current.persistent. Jev ne calcule rien : il choisit à partir de ces chiffres.
     None si le niveau actuel sort du profil météo.
+
+    profile_at(lat, lon) (optionnel) : accès à la grille météo. Si fourni, on mesure la
+    longueur réelle de la zone sursaturée le long du cap (issr_along_track) ; sinon on prend
+    la longueur typique config.ISSR_TYPICAL_KM.
     """
     current = level_risk(profile, aircraft.flight_level)
     if current is None:
@@ -166,18 +212,29 @@ def assess(aircraft: Aircraft, profile: WeatherProfile) -> RiskAssessment | None
     climb = _option(profile, aircraft.flight_level + config.LEVEL_STEP)
     descend = _option(profile, aircraft.flight_level - config.LEVEL_STEP)
     night = is_night(aircraft.lat, aircraft.lon, aircraft.timestamp)
+    options = {"climb": climb, "descend": descend}
 
     minutes = 0.0
     fuel_pen, avoided, net = {}, {}, {}
     if current.persistent:
-        minutes = fuel.minutes_in_issr(aircraft.speed_kt)
-        warming = fuel.warming_avoided_co2e_kg(minutes, aircraft.speed_kt, night)
-        for name, opt in (("climb", climb), ("descend", descend)):
+        kmh = max(aircraft.speed_kt, 1.0) * fuel.KT_TO_KMH
+        if profile_at is not None:
+            levels = {"current": aircraft.flight_level}
+            levels.update({n: o.flight_level for n, o in options.items() if o is not None})
+            km = issr_along_track(aircraft, profile_at, levels)
+            issr_km = max(km["current"], TRACK_STEP_KM)
+            avoided_km = {n: km.get(n, 0.0) for n in options}
+        else:
+            issr_km = config.ISSR_TYPICAL_KM
+            avoided_km = {n: (0.0 if o is None or o.persistent else issr_km) for n, o in options.items()}
+        minutes = issr_km / kmh * 60.0
+        factor = config.CONTRAIL_CO2E_KG_PER_KM["night" if night else "day"]
+        for name, opt in options.items():
             if opt is None:
                 continue
+            # On reste au niveau dévié tant que l'avion traverse la zone sursaturée.
             fuel_pen[name] = round(fuel.fuel_penalty_kg(None, minutes, name), 1)
-            # Si le niveau visé est lui aussi persistant, on ne fait que déplacer le contrail.
-            avoided[name] = 0.0 if opt.persistent else round(warming, 0)
+            avoided[name] = round(avoided_km[name] * factor, 0)
             net[name] = round(fuel.net_benefit_co2e_kg(avoided[name], fuel_pen[name]), 0)
 
     return RiskAssessment(

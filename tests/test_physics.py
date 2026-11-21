@@ -90,3 +90,26 @@ def test_night_weighs_more_than_day():
 
 def test_out_of_profile_returns_none():
     assert c.level_risk(profile({}), 500) is None
+
+
+def test_along_track_measures_issr_length():
+    wet = profile({275: 100, 250: 100, 225: 40})
+    dry = profile({})
+    # zone sursaturée sur les 100 premiers km vers l'est, puis sec
+    def profile_at(lat, lon):
+        return wet if lon < -64.0 + 100 / (111.2 * 0.656) else dry
+    a = c.assess(Aircraft("x", "X", 49.0, -64.0, 33000, 330, 90.0, 500.0, NIGHT_TS), wet, profile_at=profile_at)
+    assert a.flagged
+    assert 75 <= a.minutes_in_issr / 60 * 500 * 1.852 <= 130  # ~100 km, à un pas de 25 km près
+    assert a.warming_avoided_co2e_kg["climb"] > 0
+
+
+def test_assess_cycle_on_replay_dict():
+    from dataclasses import asdict
+    from backend.physics.cycle import assess_cycle
+    prof = profile({275: 100, 250: 100, 225: 40})
+    data = {"timestamp": NIGHT_TS, "aircraft": [asdict(plane(330)), asdict(plane(500))],
+            "weather": [asdict(prof)]}
+    aircraft, assessments, stats = assess_cycle(data)
+    assert len(aircraft) == 2 and len(assessments) == 1  # FL500 hors profil -> écarté
+    assert stats["flagged_by_physics"] == 1
