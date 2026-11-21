@@ -1,0 +1,48 @@
+{
+ "cycle": "1795235835.json",
+ "flights": 20,
+ "flagged_by_physics": 1,
+ "llm": "granite4:micro",
+ "all_llm": {
+  "model_calls": 20,
+  "input_tokens": 9430,
+  "output_tokens": 1617,
+  "ms": 430551.2,
+  "local_wh": 2.6013
+ },
+ "contrailwatch": {
+  "model_calls": 2,
+  "jev_calls": 1,
+  "jev_input_tokens": 802,
+  "granite_calls": 1,
+  "claude_calls": 0,
+  "physics_ms": 4.2,
+  "ms": 8810.5,
+  "local_wh": 0.0389
+ },
+ "ratios": {
+  "model_calls": 10.0,
+  "time": 48.9,
+  "local_energy": 66.9
+ },
+ "quality": {
+  "contrails_found_by_all_llm": "1/1",
+  "all_llm_false_alarms": 19,
+  "same_action_on_flagged": "1/1",
+  "all_llm_unparsed_answers": 0,
+  "flagged": [
+   {
+    "callsign": "AAL278",
+    "contrailwatch": "climb_2000",
+    "all_llm": "climb_2000",
+    "all_llm_says_persistent": true
+   }
+  ]
+ },
+ "notes": [
+  "Same flights and same raw data (aircraft + weather profile) for both agents.",
+  "Physics is the reference for persistent contrails (Schmidt-Appleman + ice supersaturation).",
+  "Local Wh = 25.0 W x generation time (estimate). Jev runs remotely: calls and tokens only."
+ ],
+ "measured_at": 1795250061
+}
