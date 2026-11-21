@@ -74,7 +74,7 @@ The all-LLM agent gets each aircraft and its weather profile and does everything
 
 With most tested flights flagged, TrailSense has to call Jev almost every time, so the efficiency gap shrinks. That is the worst case for us: in the real day cycle only 22 of 451 aircraft are flagged, so the all-LLM agent would need 451 calls where TrailSense made 22. The quality gap grows instead. **Cheaper when the sky is clear, right when it isn't.**
 
-In both runs, asked to judge contrails by itself, the all-LLM agent said "persistent contrail" for **every single flight**: it would have sent the dispatcher 57 needless, fuel-burning deviations, and it picked the wrong direction for UPS214. TrailSense's time includes loading the local model once. **Physics first is cheaper *and* more reliable.**
+Asked to judge contrails by itself, the all-LLM agent said "persistent contrail" for **every single flight** in both runs: 57 needless, fuel-burning deviations in Canada (plus the wrong direction for UPS214), 22 in Europe. TrailSense's time includes loading the local model once. **Physics first is cheaper *and* more reliable.**
 
 ### Jev on the real flagged flights
 | Flight (night, Eastern Canada) | Jev's decision | Per-option probability | Route |
