@@ -20,11 +20,11 @@ _ACTIONS = {"climb": Action.CLIMB, "descend": Action.DESCEND}
 
 
 def route_for(confidence: float, threshold: float, forecast_reliability: float = 1.0,
-              action: str = Action.MAINTAIN) -> Route:
+              action: str = Action.MAINTAIN, min_reliability: float = MIN_FORECAST_RELIABILITY) -> Route:
     """The autonomy threshold: AUTO if confident enough, otherwise Sophie reviews.
     Guardrail: a level change built on an unreliable weather forecast always goes to Sophie,
     however confident the decision (Jev can be sure of the action and unsure of the forecast)."""
-    if action != Action.MAINTAIN and forecast_reliability < MIN_FORECAST_RELIABILITY:
+    if action != Action.MAINTAIN and forecast_reliability < min_reliability:
         return Route.HUMAN
     return Route.AUTO if confidence >= threshold else Route.HUMAN
 

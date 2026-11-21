@@ -32,10 +32,8 @@ flowchart LR
     B -->|flagged, no option helps| M[Keep level<br/>decided in code, no model call]
     B -->|flagged, an option helps| J["Jev (System 1)<br/>typed, calibrated decision"]
     J -.->|Jev unavailable| R[Fallback rule]
-    J --> G{forecast reliable?}
-    R --> G
-    G -->|no| HUM
-    G -->|yes| T{confidence ≥ threshold?}
+    J --> T{confidence ≥ threshold?}
+    R --> T
     T -->|yes| AUTO[Sent automatically]
     T -->|no| HUM[Sophie reviews]
     AUTO --> W["Advisory (System 2)<br/>free template → IBM Granite, local"]
@@ -45,7 +43,7 @@ flowchart LR
 
 - **Physics** (`backend/physics/`, Dawud): Schmidt-Appleman criterion for formation, ice supersaturation (RHi ≥ 95%) for persistence, the length of the supersaturated region measured along the aircraft's heading, fuel penalty and CO₂e avoided ([Borella et al., 2024](https://acp.copernicus.org/articles/24/9401/2024/)). All assumptions: [`docs/hypotheses.md`](docs/hypotheses.md).
 - **Jev** (`backend/agent/jev.py`): [TypeSafe AI](https://typesafe.ai/)'s non-generative "System One" model gets a compact state (levels, humidity, fuel, net benefit, forecast margin) and 4 typed questions. It does no arithmetic: it chooses, and says how sure it is. If no option has a positive net benefit, the code decides "keep level" without calling Jev.
-- **Guardrail** (`fallback.route_for`): a climb or descent is sent automatically only if Jev is confident **and** rates the weather forecast as reliable (≥ 0.5). Jev can be sure of the best action while doubting the forecast; those cases always go to Sophie.
+- **Forecast guardrail, measured and kept off** (`fallback.route_for`, `config.MIN_FORECAST_RELIABILITY`): it would send any climb or descent to Sophie when Jev doubts the weather forecast. On every recorded cycle Jev rates the GFS humidity forecast "low" (0.01-0.11), because GFS caps humidity at 100%, right at our 95% threshold. Turned on, it would send every move to review, so the high autonomy threshold does that job instead. It is one setting to turn on with a better humidity forecast.
 - **Fallback rule** (`backend/agent/fallback.py`): same output as Jev, used automatically if Jev is unreachable, so the demo cannot break. The interface always says who decided.
 - **Writers** (`backend/agent/writer.py`): a free template for every advisory; [IBM Granite 4 micro](https://ollama.com/library/granite4) running **locally** (Ollama) rewrites the important ones in plain language. A guard rejects any advisory containing a number that is not in the facts. Apart from Jev's API call, everything runs on the laptop.
 
