@@ -1,0 +1,3 @@
+/* [DAWUD] Mise en page : carte à gauche, fiche du vol à droite, reçu en bas. */
+body { margin: 0; font-family: system-ui, sans-serif; }
+#map { height: 80vh; }

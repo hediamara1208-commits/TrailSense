@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>ContrailWatch</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- [DAWUD] Interface. Zones prévues :
+       - #map        : carte Leaflet, avions colorés (gris = OK, orange = signalé, rouge = auto, violet = revue humaine)
+       - #panel      : fiche du vol cliqué (3 niveaux, pénalité carburant, décision Jev + confiance, avis)
+       - #controls   : bascule Replay/Live + curseur "seuil d'autonomie"
+       - #receipt    : reçu de calcul + bouton "comparer au tout-LLM" (GET /api/benchmark)
+  -->
+  <div id="controls"></div>
+  <div id="map"></div>
+  <aside id="panel"></aside>
+  <footer id="receipt"></footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
