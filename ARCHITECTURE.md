@@ -18,7 +18,9 @@ Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de
         action + confiance → AUTO (≥ seuil) ou HUMAN (< seuil)
                        │  seulement les 2-3 plus importants
                        ▼
-        agent/writer.llm_advisory()      ← SYSTÈME 2 : cher, rare (sinon gabarit)
+        agent/writer.py                  ← SYSTÈME 2, en cascade :
+          gabarit (gratuit) → Granite local, IBM via Ollama (avis courants)
+          → Cloud LLM (1-2 avis clés seulement)
                        │
                        ▼
         Snapshot + Receipt  →  api.py  →  frontend (carte Leaflet)
@@ -36,7 +38,7 @@ Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de
 | `backend/physics/fuel.py` | Dawud | Pénalité carburant, CO₂ |
 | `backend/agent/jev.py` | Hedi | Décision Jev, seuil d'autonomie |
 | `backend/agent/fallback.py` | Hedi | Plan B sans Jev (règle codée) |
-| `backend/agent/writer.py` | Hedi | Avis LLM ou gabarit, mesure EcoLogits |
+| `backend/agent/writer.py` | Hedi | Avis : gabarit → Granite local → Cloud LLM, mesure EcoLogits |
 | `backend/agent/pipeline.py` | Hedi | Orchestration d'un cycle, Receipt |
 | `backend/benchmark/all_llm.py` | Hedi | Comparaison avec un agent tout-LLM (~20 vols) |
 | `backend/api.py` | Hedi | FastAPI |
@@ -54,9 +56,17 @@ Tant qu'un module n'est pas prêt, l'autre utilise le fichier exemple. Personne 
 ```bash
 python -m venv .venv && source .venv/bin/activate   # Windows : .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env                                  # remplir les clés
+cp .env.example .env                                  # remplir les clés (ou : op run --env-file=.env -- ...)
+ollama pull granite4:micro                            # étage local (nom exact : vérifier avec ollama list)
 uvicorn backend.api:app --reload                      # puis ouvrir http://localhost:8000
 ```
+
+## Outils du hackathon utilisés
+- **Jev** (TypeSafe AI, recommandé par l'organisation) : décision Système 1.
+- **Cloud LLM** (provider, crédits via le Cloud LLM Builder Club McGill) : avis clés + benchmark tout-LLM.
+- **IBM Granite** (modèle ouvert, local via Ollama) : avis courants sans cloud.
+- **1Password** (`op run`) : clés injectées à l'exécution, jamais dans le repo public.
+- **Lovable** (code COMM-MCGILL-BSA6) : option pour accélérer l'interface.
 
 ## Hypothèses à documenter (docs/hypotheses.md)
 - Convention de l'humidité Open-Meteo (par rapport à l'eau ou à la glace).

@@ -161,13 +161,13 @@
    "icao24": "c0ffee",
    "callsign": "TEST101",
    "text": "TEST101 au FL360 traverse une couche sursaturée en glace (RHi 118 %). Le FL340 est sec. Proposition : descendre de 2 000 ft. Coût : +38 kg de carburant. Confiance : 0,91.",
-   "written_by": "llm"
+   "written_by": "cloud_llm"
   },
   {
    "icao24": "c0ffef",
    "callsign": "TEST202",
    "text": "TEST202 FL350 -> FL370 proposé (RHi 106 % -> 92 %). +22 kg. Confiance 0,62 : à valider.",
-   "written_by": "template"
+   "written_by": "granite"
   }
  ],
  "receipt": {
@@ -177,6 +177,8 @@
   "flagged_by_physics": 2,
   "jev_calls": 1,
   "jev_input_tokens": 600,
+  "local_llm_calls": 1,
+  "local_llm_energy_wh": 0.05,
   "llm_calls": 1,
   "llm_energy_wh": 0.5,
   "llm_gco2e": 0.2,
