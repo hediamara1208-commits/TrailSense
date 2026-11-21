@@ -67,22 +67,27 @@ def write_advisories(decisions: list[Decision], assessments: list[RiskAssessment
     out = []
     for d in decisions:
         a, cs, who = by_id[d.icao24], callsigns.get(d.icao24, ""), routes.get(d.icao24, "template")
+        tiers = {"cloud_llm": ["cloud_llm", "granite"], "granite": ["granite"]}.get(who, [])
+        if not config.USE_GRANITE:
+            tiers = [t for t in tiers if t != "granite"]
         adv = None
-        try:
-            if who == "cloud_llm":
-                adv, imp = writer.cloud_llm_advisory(d, a)
-                receipt.llm_calls += 1
-                receipt.llm_energy_wh += imp.get("energy_wh", 0.0)
-                receipt.llm_gco2e += imp.get("gco2e", 0.0)
-                receipt.cost_usd += imp.get("cost_usd", 0.0)
-            elif who == "granite":
-                adv, imp = writer.granite_advisory(d, a)
-                receipt.local_llm_calls += 1
-                receipt.local_llm_energy_wh += imp.get("energy_wh", 0.0)
-        except NotImplementedError:
-            pass
-        except Exception as e:
-            log.warning("%s advisory failed for %s (%s): template instead", who, d.icao24, e)
+        for tier in tiers:   # cheapest acceptable fallback: Cloud LLM -> Granite -> template
+            try:
+                if tier == "cloud_llm":
+                    adv, imp = writer.cloud_llm_advisory(d, a, cs)
+                    receipt.llm_calls += 1
+                    receipt.llm_energy_wh += imp.get("energy_wh", 0.0)
+                    receipt.llm_gco2e += imp.get("gco2e", 0.0)
+                    receipt.cost_usd += imp.get("cost_usd", 0.0)
+                else:
+                    adv, imp = writer.granite_advisory(d, a, cs)
+                    receipt.local_llm_calls += 1
+                    receipt.local_llm_energy_wh += imp.get("energy_wh", 0.0)
+                break
+            except NotImplementedError:
+                continue
+            except Exception as e:
+                log.warning("%s advisory failed for %s (%s): next tier", tier, d.icao24, e)
         out.append(adv or writer.template_advisory(d, a, cs))
     return out
 

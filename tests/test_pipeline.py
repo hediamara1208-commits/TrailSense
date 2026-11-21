@@ -24,6 +24,7 @@ def replay(tmp_path, monkeypatch):
     monkeypatch.setattr(recorder, "REPLAY_DIR", tmp_path)
     monkeypatch.setattr(config, "RH_CONVENTION", "ice")
     monkeypatch.setattr(config, "USE_JEV", True)
+    monkeypatch.setattr(config, "USE_GRANITE", False)  # never call the local model in tests
 
     def jev_down(*args, **kwargs):  # never spend real Jev credits in tests
         raise RuntimeError("Jev unavailable in tests")
