@@ -27,13 +27,26 @@ REPLAY_DIR = Path(__file__).resolve().parents[2] / "data" / "replay"
 _last_weather_hour: int | None = None
 
 
-def record_cycle(with_weather: bool = True) -> str | None:
-    """Fetch aircraft (+ weather if asked) once and write data/replay/<timestamp>.json.
+# One-shot capture regions (python -m backend.sources.recorder --once --region NAME).
+# Kept under ~500 square degrees so a snapshot costs at most 4 OpenSky credits.
+REGIONS = {
+    "east_canada": config.BBOX,
+    "north_atlantic": {"lamin": 45.0, "lamax": 60.0, "lomin": -50.0, "lomax": -20.0},
+    "europe": {"lamin": 44.0, "lamax": 56.0, "lomin": -5.0, "lomax": 15.0},
+    "us_northeast": {"lamin": 38.0, "lamax": 46.0, "lomin": -80.0, "lomax": -68.0},
+}
+
+
+def record_cycle(with_weather: bool = True, bbox: dict | None = None,
+                 out_dir: Path | None = None) -> str | None:
+    """Fetch aircraft (+ weather if asked) once and write <out_dir>/<timestamp>.json.
 
     Returns the path, or None if OpenSky returned nothing (429, network...).
     Weather is fetched for the whole grid in a few grouped calls.
     """
-    planes = opensky.fetch_aircraft(config.BBOX)
+    bbox = bbox or config.BBOX
+    out_dir = out_dir or REPLAY_DIR
+    planes = opensky.fetch_aircraft(bbox)
     if not planes:
         return None
     ts = max(a.timestamp for a in planes)
@@ -41,10 +54,10 @@ def record_cycle(with_weather: bool = True) -> str | None:
     if with_weather:
         # Fixed grid over the whole BBOX: every replayed aircraft (even one arriving later,
         # in another cell) will have a nearby profile.
-        profs = weather.get_profiles_batch(grid_points(), ts)
+        profs = weather.get_profiles_batch(grid_points(bbox), ts)
         profiles = [asdict(p) for p in profs.values()]
-    REPLAY_DIR.mkdir(parents=True, exist_ok=True)
-    path = REPLAY_DIR / f"{ts}.json"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / f"{ts}.json"
     path.write_text(json.dumps({"timestamp": ts,
                                 "aircraft": [asdict(a) for a in planes],
                                 "weather": profiles}))
@@ -106,6 +119,32 @@ def run_forever() -> None:
         time.sleep(config.RECORD_S)
 
 
+def snapshot(region: str) -> None:
+    """One-shot capture of another region, saved to data/regions/<region>/, then scanned."""
+    from backend.physics.cycle import assess_cycle
+    out = REPLAY_DIR.parent / "regions" / region
+    path = record_cycle(with_weather=True, bbox=REGIONS[region], out_dir=out)
+    if path is None:
+        print("No aircraft received (quota or network).")
+        return
+    aircraft, assessments, stats = assess_cycle(json.loads(Path(path).read_text()))
+    by_id = {a.icao24: a for a in aircraft}
+    print(f"{region}: {stats['aircraft_scanned']} aircraft, {stats['flagged_by_physics']} flagged -> {path}")
+    for r in assessments:
+        if r.flagged:
+            a = by_id[r.icao24]
+            print(f"  {a.callsign:8} FL{a.flight_level}  RHi {r.current.rh_ice_pct:.0f} %  "
+                  f"ISSR {r.minutes_in_issr:.0f} min  net {r.net_benefit_co2e_kg}  night={r.is_night}")
+
+
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Record the sky for Replay mode.")
+    parser.add_argument("--once", action="store_true", help="single snapshot of --region, then scan it")
+    parser.add_argument("--region", default="east_canada", choices=sorted(REGIONS))
+    args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
-    run_forever()
+    if args.once:
+        snapshot(args.region)
+    else:
+        run_forever()
