@@ -61,9 +61,13 @@ JEV_MODEL = "jev-preview"
 # Plan B: if Jev is unavailable (API down, early access blocked), switch to the hard-coded rule
 USE_JEV = True
 
-# Frugality: send all flagged flights of a cycle to Jev in ONE request (questions prefixed by icao24),
-# by groups of at most JEV_MAX_GROUP. If a grouped call fails, jev.decide() retries one flight per call.
-JEV_GROUPED = True
+# Grouped call: all flagged flights of a cycle in ONE request (questions prefixed by icao24), by groups of
+# at most JEV_MAX_GROUP; if a grouped call fails, jev.decide() retries one flight per call.
+# Measured Sat 02:55 (scripts/try_jev_grouped.py, AAL278 + UAL46 + TEST350): 3 calls / 2,406 tokens / 486 ms
+# one by one vs 1 call / 2,036 tokens (-15%) / 210 ms grouped, same actions, BUT grouped raised the
+# confidences (UAL46 0.67 -> 0.91, flipping it from human review to auto). Calibration matters more than
+# 15% of tokens, so one-by-one stays the default.
+JEV_GROUPED = False
 JEV_MAX_GROUP = 8
 
 
