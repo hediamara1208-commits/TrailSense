@@ -1,18 +1,22 @@
-"""[HEDI] Orchestrateur : un cycle complet, du ciel jusqu'au Snapshot.
+"""[HEDI] Orchestrator: one full cycle, from the sky to the Snapshot.
 
-    avions (live ou replay)
-      -> météo (cache)              [Dawud : sources/weather.py]
-      -> filtre physique            [Dawud : physics/contrails.py]
-      -> Jev sur les vols signalés  [Hedi : agent/jev.py]
-      -> avis (gabarit -> Granite -> Claude) [Hedi : agent/writer.py]
-      -> Snapshot + Receipt         renvoyé par l'API
+    aircraft (live or replay)
+      -> weather (cache) + physics filter     [Dawud: physics/cycle.py -> assess_cycle()]
+      -> Jev on the flagged flights           [Hedi: agent/jev.py]
+      -> advisories (template -> Granite -> Claude) [Hedi: agent/writer.py]
+      -> Snapshot + Receipt                   returned by the API
 
-Optimisation : garder en mémoire le dernier RiskAssessment par avion et ne le recalculer
-que si l'avion change de cellule météo ou de niveau de vol.
+Physics in one line (Dawud, PR #1):
+    aircraft, assessments, stats = assess_cycle(load_replay(i))   # or live_cycle_data()
+    stats = {aircraft_scanned, flagged_by_physics, weather_calls, weather_cache_hits, physics_ms}
+    -> copy these straight into the Receipt.
+
+Optimisation: keep the last RiskAssessment per aircraft in memory and only recompute it
+when the aircraft changes weather cell or flight level.
 """
 from backend.models import Snapshot
 
 
 def run_cycle(mode: str = "replay", threshold: float = 0.8, replay_index: int = 0) -> Snapshot:
-    """Exécute un cycle et remplit le Receipt (compteurs, latence, énergie)."""
+    """Runs one cycle and fills the Receipt (counters, latency, energy)."""
     raise NotImplementedError
