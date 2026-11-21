@@ -66,12 +66,12 @@ ollama pull granite4:micro                            # local tier (check the ex
 uvicorn backend.api:app --reload                      # or run scripts/run_api.py, then open http://localhost:8000
 ```
 
-## Hackathon tools used
-- **Jev** (TypeSafe AI, recommended by the organizers): System 1 decision.
-- **Cloud LLM** (provider, credits via the McGill Cloud LLM Builder Club): key advisories + all-LLM benchmark.
-- **IBM Granite** (open model, local via Ollama): routine advisories without the cloud.
-- **1Password** (`op run`): keys injected at runtime, never in the public repo.
-- **Lovable** (code COMM-MCGILL-BSA6): option to speed up the interface.
+## Hackathon tools used (status Sat 04:25)
+- **Jev** (TypeSafe AI, recommended by the organizers): System 1 decision, real API calls (`agent/jev.py`). Grouped call measured and kept off (inflates confidence).
+- **IBM Granite** (`granite4:micro`, local via Ollama): advisories with a numbers guard (`agent/writer.py`) and the all-LLM side of the benchmark.
+- **Lovable**: the published frontend (separate repo, see `docs/lovable.md`).
+- **Cloud LLM** (provider): coding assistant; the top writing tier is wired in the cascade but needs API credits (asked to the McGill Cloud LLM Builder Club).
+- **1Password** (`op run`): planned (T4) for sharing keys; until then keys stay in `.env`, never committed.
 
 ## Assumptions
 All physics assumptions (humidity convention, persistence threshold, propulsive efficiency, fuel penalty, warming factor per km, day/night) are documented and sourced in [`docs/hypotheses.md`](docs/hypotheses.md).
