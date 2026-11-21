@@ -43,7 +43,7 @@ flowchart LR
 
 - **Physics** (`backend/physics/`, Dawud): Schmidt-Appleman criterion for formation, ice supersaturation (RHi ≥ 95%) for persistence, the length of the supersaturated region measured along the aircraft's heading, fuel penalty and CO₂e avoided ([Borella et al., 2024](https://acp.copernicus.org/articles/24/9401/2024/)). All assumptions: [`docs/hypotheses.md`](docs/hypotheses.md).
 - **Jev** (`backend/agent/jev.py`): [TypeSafe AI](https://typesafe.ai/)'s non-generative "System One" model gets a compact state (levels, humidity, fuel, net benefit, forecast margin) and 4 typed questions. It does no arithmetic: it chooses, and says how sure it is. If no option has a positive net benefit, the code decides "keep level" without calling Jev.
-- **Forecast guardrail, measured and kept off** (`fallback.route_for`, `config.MIN_FORECAST_RELIABILITY`): it would send any climb or descent to Sophie when Jev doubts the weather forecast. On every recorded cycle Jev rates the GFS humidity forecast "low" (0.01-0.11), because GFS caps humidity at 100%, right at our 95% threshold. Turned on, it would send every move to review, so the high autonomy threshold does that job instead. It is one setting to turn on with a better humidity forecast.
+- **Forecast guardrail, measured and kept off** (`fallback.route_for`, `config.MIN_FORECAST_RELIABILITY`): it would send any climb or descent to Sophie when Jev doubts the weather forecast. On every recorded cycle Jev rates the GFS humidity forecast "low" (0.01-0.11), because GFS caps humidity at 100%, right at our 95% threshold. On a test flight with a strong signal (RHi 125%), Jev rates it 0.51-0.54: the score works, our real forecasts are just weak. Turned on, it would send every move to review, so the high autonomy threshold does that job instead. It is one setting to turn on with a better humidity forecast.
 - **Fallback rule** (`backend/agent/fallback.py`): same output as Jev, used automatically if Jev is unreachable, so the demo cannot break. The interface always says who decided.
 - **Writers** (`backend/agent/writer.py`): a free template for every advisory; [IBM Granite 4 micro](https://ollama.com/library/granite4) running **locally** (Ollama) rewrites the important ones in plain language. A guard rejects any advisory containing a number that is not in the facts. Apart from Jev's API call, everything runs on the laptop.
 
@@ -107,7 +107,7 @@ python scripts/run_api.py                             # → http://localhost:800
 python -m pytest -q                                   # 31 tests, no network needed
 ```
 
-**Optional: secrets with [1Password](https://developer.1password.com/docs/cli/secrets-environment-variables/)** (the repo is public): store the Jev key in a vault named `TrailSense` (item `Jev`, field `credential`), then run anything through `op run`. [`.env.1password`](.env.1password) holds only `op://` references, never a key.
+**Secrets with [1Password](https://developer.1password.com/docs/cli/secrets-environment-variables/)** (how we run it; the repo is public): store the Jev key in a vault named `TrailSense` (item `Jev`, field `credential`), then run anything through `op run`. [`.env.1password`](.env.1password) holds only `op://` references, never a key.
 ```bash
 op run --env-file=.env.1password -- python scripts/run_api.py
 op run --env-file=.env.1password -- python scripts/export_snapshots.py
@@ -142,6 +142,7 @@ More detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) · plan and progress: [`TASKS.
 - **[Jev](https://typesafe.ai/)** (TypeSafe AI): the System 1 decision with calibrated confidence.
 - **[IBM Granite](https://www.ibm.com/granite)** via [Ollama](https://ollama.com/): local advisories and the benchmark's LLM.
 - **[Lovable](https://lovable.dev/)**: the published frontend.
+- **[1Password](https://1password.com/)** CLI: the Jev key lives in a 1Password vault and is injected at run time (`op run --env-file=.env.1password`); no key on disk or in the repo.
 - **[Cloud LLM](https://www.provider.com/cloud_llm)** (provider): coding assistant throughout the weekend.
 - **Data:** [OpenSky Network](https://opensky-network.org/) (aircraft), [Open-Meteo](https://open-meteo.com/) GFS (weather). **Stack:** Python, FastAPI, httpx, Leaflet, React.
 

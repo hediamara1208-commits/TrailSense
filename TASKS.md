@@ -74,7 +74,7 @@ Nothing here needs new recordings. New cycles are a bonus, picked up at noon.
 - [ ] **W2 · Demo click path (15 min):** the exact sequence to show live: cycle 1 AAL278 (Jev hesitates 74/25 → Sophie reviews) → slider → cycle 3 UPS214 (0.98 → auto) → search "AAL278" (flagged at 04:37, clear 25 min later) → benchmark section. Time it: max 60 s.
 - [ ] **W3 · Phone test of the live site (10 min):** open the QR code on your phone, note anything broken or unclear.
 - [ ] **W4 · Agent Q&A answers (20 min):** why Jev and not an LLM; what the 0.53-0.61 confidences mean; why the grouped call is off (inflated confidence); the 19 false alarms of the all-LLM agent; what happens if Jev is down (fallback rule).
-- [ ] **T4 · 1Password** (when awake): install the CLI and sign in.
+- [x] **T4 · 1Password** (when awake): install the CLI and sign in. *(Sat 15:43: vault TrailSense / item Jev; `op run --env-file=.env.1password` tested with .env removed: Jev answers)*
 
 **Dawud**
 - [x] **W5 · Threshold sensitivity (30 min):** run the scan with RHI_THRESHOLD 90 / 95 / 100 on the whole recording: how many flights flagged each time? Ready answer for "how sensitive is your result to the threshold?". *(PR #3: 3 → 6 flights from 95% to 90%, always < 1% of aircraft)*
