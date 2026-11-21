@@ -1,32 +1,186 @@
 {
-  "_note": "Exemple FICTIF pour développer l'interface avant que le pipeline marche. Même format que GET /api/snapshot.",
-  "mode": "replay",
-  "timestamp": 1795237200,
-  "threshold": 0.8,
-  "aircraft": [
-    {"icao24": "c0ffee", "callsign": "TEST101", "lat": 45.9, "lon": -73.1, "altitude_ft": 36000, "flight_level": 360, "heading_deg": 250, "speed_kt": 470, "timestamp": 1795237200},
-    {"icao24": "c0ffef", "callsign": "TEST202", "lat": 46.8, "lon": -71.5, "altitude_ft": 35000, "flight_level": 350, "heading_deg": 60, "speed_kt": 455, "timestamp": 1795237200},
-    {"icao24": "c0fff0", "callsign": "TEST303", "lat": 45.2, "lon": -75.9, "altitude_ft": 38000, "flight_level": 380, "heading_deg": 280, "speed_kt": 480, "timestamp": 1795237200}
-  ],
-  "assessments": [
-    {"aircraft": {"icao24": "c0ffee"}, "current": {"flight_level": 360, "temperature_c": -52.0, "rh_ice_pct": 118.0, "sac_satisfied": true, "persistent": true},
-     "climb": {"flight_level": 380, "temperature_c": -55.0, "rh_ice_pct": 104.0, "sac_satisfied": true, "persistent": true},
-     "descend": {"flight_level": 340, "temperature_c": -48.0, "rh_ice_pct": 71.0, "sac_satisfied": true, "persistent": false},
-     "is_night": true, "flagged": true, "fuel_penalty_kg": {"climb": 25.0, "descend": 38.0}},
-    {"aircraft": {"icao24": "c0ffef"}, "current": {"flight_level": 350, "temperature_c": -50.0, "rh_ice_pct": 106.0, "sac_satisfied": true, "persistent": true},
-     "climb": {"flight_level": 370, "temperature_c": -53.0, "rh_ice_pct": 92.0, "sac_satisfied": true, "persistent": false},
-     "descend": {"flight_level": 330, "temperature_c": -46.0, "rh_ice_pct": 110.0, "sac_satisfied": true, "persistent": true},
-     "is_night": true, "flagged": true, "fuel_penalty_kg": {"climb": 22.0, "descend": 35.0}},
-    {"aircraft": {"icao24": "c0fff0"}, "current": {"flight_level": 380, "temperature_c": -56.0, "rh_ice_pct": 64.0, "sac_satisfied": true, "persistent": false},
-     "climb": null, "descend": null, "is_night": true, "flagged": false, "fuel_penalty_kg": {}}
-  ],
-  "decisions": [
-    {"icao24": "c0ffee", "action": "descend_2000", "confidence": 0.91, "persistent_warming_prob": 0.87, "forecast_reliability": 0.7, "operational_feasibility": 0.8, "route": "auto"},
-    {"icao24": "c0ffef", "action": "climb_2000", "confidence": 0.62, "persistent_warming_prob": 0.66, "forecast_reliability": 0.5, "operational_feasibility": 0.7, "route": "human_review"}
-  ],
-  "advisories": [
-    {"icao24": "c0ffee", "callsign": "TEST101", "text": "TEST101 au FL360 traverse une couche sursaturée en glace (RHi 118 %). Le FL340 est sec. Proposition : descendre de 2 000 ft. Coût : +38 kg de carburant. Confiance : 0,91.", "written_by": "llm"},
-    {"icao24": "c0ffef", "callsign": "TEST202", "text": "TEST202 FL350 -> FL370 proposé (RHi 106 % -> 92 %). +22 kg. Confiance 0,62 : à valider.", "written_by": "template"}
-  ],
-  "receipt": {"aircraft_scanned": 3, "weather_calls": 2, "weather_cache_hits": 1, "flagged_by_physics": 2, "jev_calls": 1, "jev_input_tokens": 600, "llm_calls": 1, "llm_energy_wh": 0.5, "llm_gco2e": 0.2, "cost_usd": 0.003, "latency_ms": 900}
+ "_note": "Exemple FICTIF (valeurs inventées, y compris le réchauffement évité) pour développer l'interface. Même format que GET /api/snapshot.",
+ "mode": "replay",
+ "timestamp": 1795237200,
+ "threshold": 0.8,
+ "aircraft": [
+  {
+   "icao24": "c0ffee",
+   "callsign": "TEST101",
+   "lat": 45.9,
+   "lon": -73.1,
+   "altitude_ft": 36000,
+   "flight_level": 360,
+   "heading_deg": 250,
+   "speed_kt": 470,
+   "timestamp": 1795237200
+  },
+  {
+   "icao24": "c0ffef",
+   "callsign": "TEST202",
+   "lat": 46.8,
+   "lon": -71.5,
+   "altitude_ft": 35000,
+   "flight_level": 350,
+   "heading_deg": 60,
+   "speed_kt": 455,
+   "timestamp": 1795237200
+  },
+  {
+   "icao24": "c0fff0",
+   "callsign": "TEST303",
+   "lat": 45.2,
+   "lon": -75.9,
+   "altitude_ft": 38000,
+   "flight_level": 380,
+   "heading_deg": 280,
+   "speed_kt": 480,
+   "timestamp": 1795237200
+  }
+ ],
+ "assessments": [
+  {
+   "icao24": "c0ffee",
+   "current": {
+    "flight_level": 360,
+    "temperature_c": -52.0,
+    "rh_ice_pct": 118.0,
+    "sac_satisfied": true,
+    "persistent": true
+   },
+   "climb": {
+    "flight_level": 380,
+    "temperature_c": -55.0,
+    "rh_ice_pct": 104.0,
+    "sac_satisfied": true,
+    "persistent": true
+   },
+   "descend": {
+    "flight_level": 340,
+    "temperature_c": -48.0,
+    "rh_ice_pct": 71.0,
+    "sac_satisfied": true,
+    "persistent": false
+   },
+   "is_night": true,
+   "flagged": true,
+   "minutes_in_issr": 14.0,
+   "fuel_penalty_kg": {
+    "climb": 25.0,
+    "descend": 38.0
+   },
+   "warming_avoided_co2e_kg": {
+    "climb": 0.0,
+    "descend": 900.0
+   },
+   "net_benefit_co2e_kg": {
+    "climb": -79.0,
+    "descend": 779.9
+   }
+  },
+  {
+   "icao24": "c0ffef",
+   "current": {
+    "flight_level": 350,
+    "temperature_c": -50.0,
+    "rh_ice_pct": 106.0,
+    "sac_satisfied": true,
+    "persistent": true
+   },
+   "climb": {
+    "flight_level": 370,
+    "temperature_c": -53.0,
+    "rh_ice_pct": 92.0,
+    "sac_satisfied": true,
+    "persistent": false
+   },
+   "descend": {
+    "flight_level": 330,
+    "temperature_c": -46.0,
+    "rh_ice_pct": 110.0,
+    "sac_satisfied": true,
+    "persistent": true
+   },
+   "is_night": true,
+   "flagged": true,
+   "minutes_in_issr": 9.0,
+   "fuel_penalty_kg": {
+    "climb": 22.0,
+    "descend": 35.0
+   },
+   "warming_avoided_co2e_kg": {
+    "climb": 520.0,
+    "descend": 0.0
+   },
+   "net_benefit_co2e_kg": {
+    "climb": 450.5,
+    "descend": -110.6
+   }
+  },
+  {
+   "icao24": "c0fff0",
+   "current": {
+    "flight_level": 380,
+    "temperature_c": -56.0,
+    "rh_ice_pct": 64.0,
+    "sac_satisfied": true,
+    "persistent": false
+   },
+   "climb": null,
+   "descend": null,
+   "is_night": true,
+   "flagged": false,
+   "minutes_in_issr": 0.0,
+   "fuel_penalty_kg": {},
+   "warming_avoided_co2e_kg": {},
+   "net_benefit_co2e_kg": {}
+  }
+ ],
+ "decisions": [
+  {
+   "icao24": "c0ffee",
+   "action": "descend_2000",
+   "confidence": 0.91,
+   "persistent_warming_prob": 0.87,
+   "forecast_reliability": 0.7,
+   "operational_feasibility": 0.8,
+   "route": "auto"
+  },
+  {
+   "icao24": "c0ffef",
+   "action": "climb_2000",
+   "confidence": 0.62,
+   "persistent_warming_prob": 0.66,
+   "forecast_reliability": 0.5,
+   "operational_feasibility": 0.7,
+   "route": "human_review"
+  }
+ ],
+ "advisories": [
+  {
+   "icao24": "c0ffee",
+   "callsign": "TEST101",
+   "text": "TEST101 au FL360 traverse une couche sursaturée en glace (RHi 118 %). Le FL340 est sec. Proposition : descendre de 2 000 ft. Coût : +38 kg de carburant. Confiance : 0,91.",
+   "written_by": "llm"
+  },
+  {
+   "icao24": "c0ffef",
+   "callsign": "TEST202",
+   "text": "TEST202 FL350 -> FL370 proposé (RHi 106 % -> 92 %). +22 kg. Confiance 0,62 : à valider.",
+   "written_by": "template"
+  }
+ ],
+ "receipt": {
+  "aircraft_scanned": 3,
+  "weather_calls": 2,
+  "weather_cache_hits": 1,
+  "flagged_by_physics": 2,
+  "jev_calls": 1,
+  "jev_input_tokens": 600,
+  "llm_calls": 1,
+  "llm_energy_wh": 0.5,
+  "llm_gco2e": 0.2,
+  "cost_usd": 0.003,
+  "latency_ms": 900
+ }
 }

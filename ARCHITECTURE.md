@@ -6,7 +6,7 @@ Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de
 ## Le flux (un cycle)
 ```
  OpenSky (avions)            Open-Meteo GFS (T, humidité 300→200 hPa)
-        │                              │  cache par cellule 0,5° × 1 h
+        │                              │  cache par cellule 0,5° × 1 h, 1 appel groupé par cycle
         └──────────────┬───────────────┘
                        ▼
         physics/contrails.assess()       ← GRATUIT, déterministe
@@ -31,7 +31,7 @@ Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de
 | `backend/config.py` | les deux | Paramètres (zone, niveaux, seuil, cache) |
 | `backend/sources/opensky.py` | Dawud | Avions en direct |
 | `backend/sources/weather.py` | Dawud | Profil météo + cache |
-| `backend/sources/recorder.py` | Dawud | Enregistrer / rejouer le ciel (avions /10 min, météo /1 h) |
+| `backend/sources/recorder.py` | Dawud | Enregistrer / rejouer le ciel (avions /5 min, météo /1 h) |
 | `backend/physics/contrails.py` | Dawud | SAC, RHi, risque par niveau, jour/nuit |
 | `backend/physics/fuel.py` | Dawud | Pénalité carburant, CO₂ |
 | `backend/agent/jev.py` | Hedi | Décision Jev, seuil d'autonomie |
