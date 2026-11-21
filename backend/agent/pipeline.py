@@ -2,21 +2,125 @@
 
     aircraft (live or replay)
       -> weather (cache) + physics filter     [Dawud: physics/cycle.py -> assess_cycle()]
-      -> Jev on the flagged flights           [Hedi: agent/jev.py]
+      -> flagged, no option with a positive net benefit -> MAINTAIN in code (no Jev call)
+      -> Jev on the other flagged flights      [Hedi: agent/jev.py]; plan B: agent/fallback.py
       -> advisories (template -> Granite -> Cloud LLM) [Hedi: agent/writer.py]
       -> Snapshot + Receipt                   returned by the API
 
-Physics in one line (Dawud, PR #1):
-    aircraft, assessments, stats = assess_cycle(load_replay(i))   # or live_cycle_data()
-    stats = {aircraft_scanned, flagged_by_physics, weather_calls, weather_cache_hits, physics_ms}
-    -> copy these straight into the Receipt.
-
-Optimisation: keep the last RiskAssessment per aircraft in memory and only recompute it
-when the aircraft changes weather cell or flight level.
+Frugality:
+- A cycle is computed ONCE and cached. Moving the threshold slider only re-routes the
+  decisions (auto / human review): no new physics, no new Jev call.
+- Live cycles are reused for LIVE_CACHE_S seconds (OpenSky credits, Jev calls).
 """
-from backend.models import Snapshot
+from __future__ import annotations
+
+import logging
+import time
+from dataclasses import replace
+
+from backend import config
+from backend.agent import fallback, jev, writer
+from backend.models import Advisory, Decision, Receipt, RiskAssessment, Snapshot
+from backend.physics.cycle import assess_cycle, live_cycle_data
+from backend.sources.recorder import load_replay, replay_files
+
+log = logging.getLogger(__name__)
+
+LIVE_CACHE_S = 60
+_cache: dict[tuple[str, int], tuple[float, Snapshot]] = {}
+
+
+# ---------- Decisions ----------
+
+def _decide(assessments: list[RiskAssessment], threshold: float) -> tuple[list[Decision], dict]:
+    """Jev if enabled and working, otherwise the hard-coded rule (same output)."""
+    if config.USE_JEV:
+        try:
+            return jev.decide(assessments, threshold)
+        except NotImplementedError:
+            log.info("jev.decide() not built yet: using the fallback rule")
+        except Exception as e:  # API down, quota, network...
+            log.warning("Jev failed (%s): using the fallback rule", e)
+    return fallback.decide_by_rule(assessments, threshold)
+
+
+def decide_all(assessments: list[RiskAssessment], threshold: float) -> tuple[list[Decision], dict]:
+    """Decision for every flagged flight. Obvious MAINTAIN cases never reach Jev."""
+    flagged = [a for a in assessments if a.flagged]
+    obvious = [a for a in flagged if not jev.needs_jev(a)]
+    to_decide = [a for a in flagged if jev.needs_jev(a)]
+    decisions = [fallback.maintain_by_physics(a) for a in obvious]
+    usage = {"jev_calls": 0, "jev_input_tokens": 0}
+    if to_decide:
+        more, usage = _decide(to_decide, threshold)
+        decisions += more
+    return decisions, usage
+
+
+# ---------- Advisories ----------
+
+def write_advisories(decisions: list[Decision], assessments: list[RiskAssessment],
+                     callsigns: dict[str, str], receipt: Receipt) -> list[Advisory]:
+    """Writing cascade. Any tier that fails (not built, Ollama off, no credits) falls back to the template."""
+    by_id = {a.icao24: a for a in assessments}
+    routes = writer.route_writers(decisions, assessments)
+    out = []
+    for d in decisions:
+        a, cs, who = by_id[d.icao24], callsigns.get(d.icao24, ""), routes.get(d.icao24, "template")
+        adv = None
+        try:
+            if who == "cloud_llm":
+                adv, imp = writer.cloud_llm_advisory(d, a)
+                receipt.llm_calls += 1
+                receipt.llm_energy_wh += imp.get("energy_wh", 0.0)
+                receipt.llm_gco2e += imp.get("gco2e", 0.0)
+                receipt.cost_usd += imp.get("cost_usd", 0.0)
+            elif who == "granite":
+                adv, imp = writer.granite_advisory(d, a)
+                receipt.local_llm_calls += 1
+                receipt.local_llm_energy_wh += imp.get("energy_wh", 0.0)
+        except NotImplementedError:
+            pass
+        except Exception as e:
+            log.warning("%s advisory failed for %s (%s): template instead", who, d.icao24, e)
+        out.append(adv or writer.template_advisory(d, a, cs))
+    return out
+
+
+# ---------- One cycle ----------
+
+def compute_cycle(mode: str, replay_index: int, threshold: float) -> Snapshot:
+    """The real work: physics -> decisions -> advisories -> Receipt."""
+    t0 = time.perf_counter()
+    data = live_cycle_data() if mode == "live" else load_replay(replay_index)
+    aircraft, assessments, stats = assess_cycle(data)
+    receipt = Receipt(**stats)
+    decisions, usage = decide_all(assessments, threshold)
+    receipt.jev_calls = usage.get("jev_calls", 0)
+    receipt.jev_input_tokens = usage.get("jev_input_tokens", 0)
+    callsigns = {ac.icao24: ac.callsign for ac in aircraft}
+    advisories = write_advisories(decisions, assessments, callsigns, receipt)
+    receipt.latency_ms = round((time.perf_counter() - t0) * 1000, 1)
+    return Snapshot(mode=mode, timestamp=data["timestamp"], threshold=threshold, aircraft=aircraft,
+                    assessments=assessments, decisions=decisions, advisories=advisories, receipt=receipt)
+
+
+def apply_threshold(snap: Snapshot, threshold: float) -> Snapshot:
+    """Re-routes every decision for a new threshold, without recomputing anything."""
+    decisions = [replace(d, route=fallback.route_for(d.confidence, threshold)) for d in snap.decisions]
+    return replace(snap, threshold=threshold, decisions=decisions)
 
 
 def run_cycle(mode: str = "replay", threshold: float = 0.8, replay_index: int = 0) -> Snapshot:
-    """Runs one cycle and fills the Receipt (counters, latency, energy)."""
-    raise NotImplementedError
+    """Runs one cycle (or reuses the cached one) and applies the autonomy threshold."""
+    if mode == "replay":
+        n = len(replay_files())
+        key = ("replay", replay_index % n if n else 0)
+    else:
+        key = ("live", 0)
+    hit = _cache.get(key)
+    if hit and (mode == "replay" or time.time() - hit[0] < LIVE_CACHE_S):
+        return apply_threshold(hit[1], threshold)
+    snap = compute_cycle(mode, replay_index, threshold)
+    _cache[key] = (time.time(), snap)
+    return apply_threshold(snap, threshold)

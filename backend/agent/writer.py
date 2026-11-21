@@ -15,12 +15,31 @@ Expected advisory example:
 Proposal: descend 2,000 ft for ~12 min. Cost: +38 kg of fuel.
 Estimated net benefit: +780 kg CO2e avoided. Jev confidence: 0.91."
 """
-from backend.models import Advisory, Decision, RiskAssessment
+from backend import config
+from backend.models import Action, Advisory, Decision, RiskAssessment
+
+_OPTION = {Action.CLIMB: ("climb", "climb", 20), Action.DESCEND: ("descend", "descend", -20)}
+_WHO = {"jev": "Jev", "rule": "fallback rule", "physics": "physics, no Jev call"}
 
 
-def template_advisory(decision: Decision, assessment: RiskAssessment) -> Advisory:
-    """Free advisory built from a text template."""
-    raise NotImplementedError
+def template_advisory(decision: Decision, assessment: RiskAssessment, callsign: str = "") -> Advisory:
+    """Free advisory built from a text template (no model, no energy)."""
+    a, cur = assessment, assessment.current
+    callsign = callsign or a.icao24
+    when = "night" if a.is_night else "day"
+    head = (f"{callsign} at FL{cur.flight_level} ({when}) is flying through an ice-supersaturated layer "
+            f"(RHi {cur.rh_ice_pct:.0f}%) for ~{a.minutes_in_issr:.0f} min.")
+    if decision.action == Action.MAINTAIN:
+        body = "No altitude change avoids it at a net climate benefit: keep the current level."
+    else:
+        key, verb, dfl = _OPTION[decision.action]
+        target = a.climb if key == "climb" else a.descend
+        body = (f"No persistent contrail at FL{target.flight_level} (RHi {target.rh_ice_pct:.0f}%). "
+                f"Proposal: {verb} 2,000 ft. "
+                f"Cost: +{a.fuel_penalty_kg.get(key, 0):.0f} kg of fuel. "
+                f"Estimated net benefit: {a.net_benefit_co2e_kg.get(key, 0):+.0f} kg CO2e.")
+    tail = f"Confidence {decision.confidence:.2f} ({_WHO.get(decision.decided_by, decision.decided_by)})."
+    return Advisory(a.icao24, callsign, f"{head} {body} {tail}", "template")
 
 
 def granite_advisory(decision: Decision, assessment: RiskAssessment) -> tuple[Advisory, dict]:
@@ -38,5 +57,20 @@ def route_writers(decisions: list[Decision], assessments: list[RiskAssessment]) 
 
     Rank by importance (night, persistent_warming_prob, net_benefit), give the top
     MAX_CLOUD_LLM_ADVISORIES to Cloud LLM, the next MAX_GRANITE_ADVISORIES to Granite, the rest to the template.
+    MAINTAIN decisions always use the template (nothing to explain beyond the numbers).
     """
-    raise NotImplementedError
+    by_id = {a.icao24: a for a in assessments}
+
+    def importance(d: Decision) -> tuple:
+        a = by_id[d.icao24]
+        return (a.is_night, d.persistent_warming_prob, max(a.net_benefit_co2e_kg.values(), default=0))
+
+    routes = {d.icao24: "template" for d in decisions}
+    ranked = sorted((d for d in decisions if d.action != Action.MAINTAIN), key=importance, reverse=True)
+    n_cloud_llm, n_granite = config.MAX_CLOUD_LLM_ADVISORIES, config.MAX_GRANITE_ADVISORIES if config.USE_GRANITE else 0
+    for rank, d in enumerate(ranked):
+        if rank < n_cloud_llm:
+            routes[d.icao24] = "cloud_llm"
+        elif rank < n_cloud_llm + n_granite:
+            routes[d.icao24] = "granite"
+    return routes

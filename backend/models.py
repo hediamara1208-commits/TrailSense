@@ -98,6 +98,7 @@ class Decision:
     forecast_reliability: float       # Score normalised 0-1
     operational_feasibility: float    # Score normalised 0-1
     route: Route
+    decided_by: str = "jev"           # "jev", "rule" (plan B, fallback.py) or "physics" (no beneficial option)
 
 
 @dataclass

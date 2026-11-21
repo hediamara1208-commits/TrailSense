@@ -6,17 +6,25 @@ Endpoints:
 - GET /api/benchmark                                    -> benchmark result (not built yet)
 - GET /                                                 -> the web page (frontend/)
 
-STEP 5 (now): /api/snapshot returns the FICTIONAL fixture, so the map can be built
-before the real pipeline exists. Later: replace load_fixture() by pipeline.run_cycle().
+/api/snapshot runs the real pipeline (pipeline.run_cycle). Each answer carries a "source" field:
+"replay <file>", "live", or "fixture" when there is no recording yet (fictional example,
+so the map still works on a fresh clone).
 """
 import json
+import logging
+from dataclasses import asdict
 from pathlib import Path
 
 from fastapi import FastAPI, Query
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend import config
+from backend.agent import pipeline
+from backend.sources.recorder import replay_files
+
+logging.basicConfig(level=logging.INFO)
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "data" / "fixtures" / "sample_snapshot.json"
@@ -44,8 +52,15 @@ def snapshot(
     threshold: float = Query(config.DEFAULT_THRESHOLD, ge=0.0, le=1.0),
     i: int = Query(0, ge=0),
 ):
-    # TODO (later step): return asdict(pipeline.run_cycle(mode, threshold, i))
-    return load_fixture(threshold)
+    if mode == "replay" and not replay_files():
+        return {**load_fixture(threshold), "source": "fixture (no recording in data/replay/)"}
+    snap = jsonable_encoder(asdict(pipeline.run_cycle(mode, threshold, i)))
+    if mode == "replay":
+        files = replay_files()
+        snap["source"] = f"replay {i % len(files) + 1}/{len(files)} ({files[i % len(files)].name})"
+    else:
+        snap["source"] = "live"
+    return snap
 
 
 @app.get("/api/benchmark")

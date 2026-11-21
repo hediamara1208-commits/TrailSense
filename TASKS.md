@@ -23,10 +23,10 @@
 - [x] **H1 · Fri night** Jev key created; the 4 questions validated in the playground (TEST101: descend_2000, confidence 0.97, 16 ms; TEST202: maintain, confidence 0.14 → human review). Rule added: no option with a positive net benefit → MAINTAIN without calling Jev.
 - [x] **H2 · Fri night** `api.py` serves the fixture + `frontend/`: Leaflet map, planes colored by status, flight panel, threshold slider, receipt.
 - [ ] **H3 · Sat morning** `agent/jev.py`: `build_state()` + `decide()` with the threshold. Test the grouped call.
-- [ ] **H4 · Sat morning** `agent/fallback.py`: **plan B without Jev** (hard-coded rule, same output as `decide()`).
-- [ ] **H5 · Sat noon** `agent/writer.py`: template + Cloud LLM for the 1-2 key flights + EcoLogits.
+- [x] **H4 · Sat morning** `agent/fallback.py`: **plan B without Jev** (hard-coded rule, same output as `decide()`).
+- [ ] **H5 · Sat noon** `agent/writer.py`: template + Cloud LLM for the 1-2 key flights + EcoLogits. *(Template and `route_writers` done Sat 01:45; Cloud LLM and Granite tiers still to do: the pipeline falls back to the template.)*
 - [ ] **H5b · Sat afternoon (optional)** **Local Granite** tier: install Ollama, `ollama pull` the Granite model, `granite_advisory()`, local Wh measurement. **Cut-off: if it doesn't work by 15:00 Saturday, `USE_GRANITE = False` and we stop.**
-- [ ] **H6 · Sat afternoon** `agent/pipeline.py`: plug in `assess_cycle()`, fill the `Receipt` (including `physics_ms`).
+- [x] **H6 · Sat afternoon** `agent/pipeline.py`: plug in `assess_cycle()`, fill the `Receipt` (including `physics_ms`). *(Done Sat 01:45: cycle cache, the slider re-routes without recomputing; API serves real replays, falls back to the fixture if `data/replay/` is empty; `decided_by` added to `Decision`.)*
 - [ ] **H7 · Sat afternoon** `benchmark/all_llm.py`: cascade vs all-LLM, **limited to ~20 flights** from the recording.
 - [ ] **H8 · Sat evening** Final interface: Replay/Live toggle, benchmark button, best demo cycles.
 - [ ] **H9 · Sun morning** Backup video + submission README (GIF, instructions, sources).
