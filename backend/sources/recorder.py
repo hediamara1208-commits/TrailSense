@@ -61,6 +61,7 @@ def record_cycle(with_weather: bool = True, bbox: dict | None = None,
     out_dir = out_dir or REPLAY_DIR
     planes = opensky.fetch_aircraft(bbox)
     if not planes:
+        log.warning("No cruising aircraft returned for %s (OpenSky has no receivers over the ocean)", bbox)
         return None
     ts = max(a.timestamp for a in planes)
     profiles = []
