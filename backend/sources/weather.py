@@ -1,13 +1,13 @@
-"""[DAWUD] Profil météo en altitude depuis Open-Meteo (GFS), avec cache.
+"""[DAWUD] Upper-air weather profiles from Open-Meteo (GFS), with a cache.
 
-API : https://api.open-meteo.com/v1/gfs  (gratuit, sans clé)
-Variables : temperature_{p}hPa, relative_humidity_{p}hPa, geopotential_height_{p}hPa
-pour p dans PRESSURE_LEVELS_HPA.
+API: https://api.open-meteo.com/v1/gfs  (free, no key)
+Variables: temperature_{p}hPa, relative_humidity_{p}hPa, geopotential_height_{p}hPa
+for p in PRESSURE_LEVELS_HPA.
 
-Frugalité (argument jury Agent Solution) :
-- les avions proches partagent la même cellule (WEATHER_CELL_DEG × 1 h) -> cache ;
-- toutes les cellules manquantes d'un cycle partent dans UN SEUL appel
-  (Open-Meteo accepte plusieurs coordonnées séparées par des virgules).
+Frugality (Agent Solution judging argument):
+- nearby aircraft share the same cell (WEATHER_CELL_DEG × 1 h) -> cache;
+- all missing cells of a cycle go out in ONE call
+  (Open-Meteo accepts several comma-separated coordinates).
 """
 from __future__ import annotations
 
@@ -24,16 +24,16 @@ log = logging.getLogger(__name__)
 
 GFS_URL = "https://api.open-meteo.com/v1/gfs"
 M_TO_FT = 3.28084
-MAX_COORDS_PER_CALL = 100  # au-delà, on découpe (URL trop longue)
+MAX_COORDS_PER_CALL = 100  # beyond this, split (URL too long)
 
-# clé de cellule -> (profil, heure de récupération)
+# cell key -> (profile, fetch time)
 _cache: dict[tuple, tuple[WeatherProfile, float]] = {}
-# Compteurs lus par pipeline.py pour remplir le Receipt
+# Counters read by pipeline.py to fill the Receipt
 stats = {"calls": 0, "cache_hits": 0}
 
 
 def cell_key(lat: float, lon: float, hour: int) -> tuple:
-    """Arrondit (lat, lon) au centre de cellule WEATHER_CELL_DEG le plus proche, plus l'heure UTC."""
+    """Round (lat, lon) to the nearest WEATHER_CELL_DEG cell centre, plus the UTC hour."""
     step = config.WEATHER_CELL_DEG
     return (round(round(lat / step) * step, 3), round(round(lon / step) * step, 3), hour)
 
@@ -55,14 +55,14 @@ def _parse_location(loc: dict, lat: float, lon: float, hour: int) -> WeatherProf
         rh = (h.get(f"relative_humidity_{p}hPa") or [None] * len(times))[i]
         z = (h.get(f"geopotential_height_{p}hPa") or [None] * len(times))[i]
         if t is None or rh is None:
-            continue  # niveau absent du modèle : on le saute
+            continue  # level missing from the model: skip it
         levels.append(LevelWeather(pressure_hpa=p, altitude_ft=round((z or 0) * M_TO_FT),
                                    temperature_c=t, rh_pct=rh))
     return WeatherProfile(lat=lat, lon=lon, valid_time=times[i], levels=levels)
 
 
 def _fetch(cells: list[tuple], hour: int) -> dict[tuple, WeatherProfile]:
-    """Un appel Open-Meteo pour une liste de cellules (même heure)."""
+    """One Open-Meteo call for a list of cells (same hour)."""
     hour_iso = datetime.fromtimestamp(hour * 3600, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M")
     params = {
         "latitude": ",".join(str(c[0]) for c in cells),
@@ -81,10 +81,10 @@ def _fetch(cells: list[tuple], hour: int) -> dict[tuple, WeatherProfile]:
 
 
 def get_profiles_batch(points: list[tuple[float, float]], timestamp: int) -> dict[tuple, WeatherProfile]:
-    """Profils pour une liste de (lat, lon). Renvoie {cell_key: profil}.
+    """Profiles for a list of (lat, lon). Returns {cell_key: profile}.
 
-    Les cellules déjà en cache ne coûtent rien ; les autres partent en UN appel
-    (découpé par paquets de MAX_COORDS_PER_CALL si besoin).
+    Cached cells cost nothing; the rest go out in ONE call
+    (split into batches of MAX_COORDS_PER_CALL if needed).
     """
     hour = timestamp // 3600
     now = time.time()
@@ -102,7 +102,7 @@ def get_profiles_batch(points: list[tuple[float, float]], timestamp: int) -> dic
         try:
             fetched = _fetch(chunk, hour)
         except httpx.HTTPError as e:
-            log.error("Open-Meteo : %s", e)
+            log.error("Open-Meteo: %s", e)
             continue
         for k, prof in fetched.items():
             _cache[k] = (prof, now)
@@ -111,35 +111,35 @@ def get_profiles_batch(points: list[tuple[float, float]], timestamp: int) -> dic
 
 
 def get_profile(lat: float, lon: float, timestamp: int) -> tuple[WeatherProfile, bool]:
-    """Renvoie (profil, cache_hit) pour un seul point. Préférer get_profiles_batch dans le pipeline."""
+    """Return (profile, cache_hit) for a single point. Prefer get_profiles_batch in the pipeline."""
     k = cell_key(lat, lon, timestamp // 3600)
     hits_before = stats["cache_hits"]
     prof = get_profiles_batch([(lat, lon)], timestamp).get(k)
     if prof is None:
-        raise RuntimeError("Open-Meteo indisponible")
+        raise RuntimeError("Open-Meteo unavailable")
     return prof, stats["cache_hits"] > hits_before
 
 
 def export_cache() -> list[dict]:
-    """Pour recorder.py : profils en cache, sérialisables en JSON."""
+    """For recorder.py: cached profiles, JSON-serialisable."""
     from dataclasses import asdict
     return [asdict(p) for p, _ in _cache.values()]
 
 
 if __name__ == "__main__":
-    # Vérification D3 : quels niveaux existent, et l'humidité est-elle / eau ou / glace ?
-    # Indice : si RH dépasse souvent 100 % à -40/-60 °C, c'est déjà par rapport à la glace.
-    # Si elle plafonne vers 60-70 % dans des zones nuageuses, c'est probablement / eau.
+    # Check: which levels exist, and is humidity over water or over ice?
+    # Hint: if RH often exceeds 100 % at -40/-60 °C, it is already over ice.
+    # If it caps around 60-70 % in cloudy areas, it is probably over water.
     import math
     logging.basicConfig(level=logging.INFO)
     pts = [(45.5, -73.5), (46.8, -71.2), (48.5, -68.5), (45.4, -75.7)]
     profs = get_profiles_batch(pts, int(time.time()))
-    print(f"{stats['calls']} appel(s) Open-Meteo pour {len(pts)} points")
+    print(f"{stats['calls']} Open-Meteo call(s) for {len(pts)} points")
     for k, prof in profs.items():
-        print(f"\nCellule {k}  (niveaux reçus : {[int(l.pressure_hpa) for l in prof.levels]})")
+        print(f"\nCell {k}  (levels received: {[int(l.pressure_hpa) for l in prof.levels]})")
         for l in prof.levels:
             t = l.temperature_c
-            # Si rh_pct était / eau : RHi = RHw * e_w / e_i (Magnus, Alduchov & Eskridge 1996)
+            # If rh_pct were over water: RHi = RHw * e_w / e_i (Magnus, Alduchov & Eskridge 1996)
             ratio = math.exp(17.625 * t / (t + 243.04)) / math.exp(22.587 * t / (t + 273.86))
             print(f"  {int(l.pressure_hpa)} hPa  ~{l.altitude_ft:6.0f} ft  T={t:6.1f} °C  "
-                  f"RH={l.rh_pct:5.1f} %  (si /eau -> RHi={l.rh_pct * ratio:5.1f} %)")
+                  f"RH={l.rh_pct:5.1f} %  (if over water -> RHi={l.rh_pct * ratio:5.1f} %)")
