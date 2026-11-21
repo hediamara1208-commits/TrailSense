@@ -18,7 +18,7 @@ Toutes les valeurs sont réglables dans `backend/config.py`. Ce qui est **à vé
 
 ## Persistance
 - RHi ≥ **95 %** (`RHI_THRESHOLD`) ⚠️ C'est un **choix de réglage** : GFS plafonne l'humidité à 100 % et sous-estime la sursaturation, connue pour être mal représentée dans les modèles (pycontrails applique aussi une correction d'humidité). Le seuil change le nombre de vols signalés : à dire au jury.
-- Longueur traversée : **150 km** (`ISSR_TYPICAL_KM`), longueur moyenne d'une zone sursaturée le long des routes (Gierens & Spichtinger, 2000). On n'a qu'un profil par avion, donc pas l'étendue réelle.
+- Longueur traversée : **mesurée le long du cap** de l'avion, par pas de 25 km dans la grille météo de 1°, tant que le niveau actuel reste sursaturé (max 800 km ; arrêt en bord de grille). Le contrail évité pour une option = les km où le niveau actuel est sursaturé mais pas le niveau visé. Sans grille (repli) : **150 km** (`ISSR_TYPICAL_KM`), longueur moyenne d'une zone sursaturée le long des routes (Gierens & Spichtinger, 2000). Limites : cap constant, vent et mouvement de la zone ignorés.
 
 ## Carburant
 - Type d'avion inconnu → consommation générique **3 000 kg/h**.
