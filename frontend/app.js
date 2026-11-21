@@ -5,8 +5,10 @@ const COLORS = { grey: "#9aa0a6", orange: "#f29d38", green: "#2e9e6b", purple: "
 
 // 1. The map, centred on southern Québec.
 const map = L.map("map").setView([46.5, -72.5], 6);
-L.tileLayer("https://{s}.basemap.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-  attribution: "© OpenStreetMap, © CARTO",
+// OpenStreetMap tiles (the CARTO dark tiles are blocked on the venue network).
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: "© OpenStreetMap contributors",
 }).addTo(map);
 const planeLayer = L.layerGroup().addTo(map);
 
