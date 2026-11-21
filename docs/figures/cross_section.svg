@@ -61,5 +61,5 @@
 
   <!-- Footer -->
   <text x="30" y="500" fill="#c9d6ea" font-size="16">Form: Schmidt-Appleman criterion (T &lt; T_LM).  Persist: RHi ≥ 95 %.  ±2,000 ft keeps a legal RVSM level.</text>
-  <text x="30" y="524" fill="#8aa0bf" font-size="13">ContrailWatch · GFS via Open-Meteo, OpenSky · warming factor from Borella et al. (2024)</text>
+  <text x="30" y="524" fill="#8aa0bf" font-size="13">TrailSense · GFS via Open-Meteo, OpenSky · warming factor from Borella et al. (2024)</text>
 </svg>
