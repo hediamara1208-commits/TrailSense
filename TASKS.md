@@ -53,7 +53,7 @@ Order: tonight (1), Saturday morning (3) → (2) → H7, Saturday alongside (4) 
 
 | When | Hedi | Dawud | Cloud LLM |
 |---|---|---|---|
-| 11:00-12:00 | Rename the GitHub repo (click); Lovable: rename project + address, Publish; W1 pitch storyline | Pick the best Europe cycle(s) for the demo; check the day cycle's day/night factor | Merge PR #3; export the Europe cycles with real Jev + Granite into the demo |
+| 11:00-12:00 | Rename the GitHub repo (click); Lovable: rename project + address, Publish; W1 pitch storyline | Pick the best Europe cycle(s) for the demo; check the day cycle's day/night factor | ✅ PR #3 merged, main updated (12:10); ✅ Europe cycles in the demo with real Jev + Granite (12:25) |
 | **12:00 sync** | Merge hedi/agent → main together; walk through the demo cycles (D9) | same | Update README numbers |
 | 12:00-13:00 | Lunch; booth visits: TypeSafe (Jev feedback), IBM (Bob credits?), Lovable | Lunch; ask organizers: projector or laptop? | Benchmark on the Europe cycles (many flagged = stronger "right action" test) |
 | 13:00-17:00 | W2 demo click path, W4 agent Q&A; T4 1Password if time | Physics slide from the cross-section, threshold-sensitivity answer, day vs night | Pitch deck (W11) from W1 + Dawud's material |

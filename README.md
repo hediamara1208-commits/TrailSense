@@ -71,6 +71,8 @@ Asked to judge contrails by itself, the all-LLM agent said "persistent contrail"
 | UAL46 FL330 | climb 2,000 ft, confidence 0.56 | climb 71% · descend 27% · keep 2% | Sophie reviews |
 | UPS214 FL320 | descend 2,000 ft, confidence 0.98 | descend 99% · climb 0% · keep 1% | sent automatically |
 
+In **Europe** (Dawud's recordings, ~450 aircraft per cycle) the physics flags 4, 14 (night) and 22 (day) flights in about 37 ms. Jev is confident on most of them (e.g. RUK54ST FL370: climb, 0.96, sent automatically, +3.3 t CO₂e for 13 kg of fuel), and 4-5 per cycle are kept level in code because no option helps: no model call at all.
+
 Where two options are almost equally good (AAL278: +3,737 vs +3,733 kg CO₂e) and the humidity sits just above the threshold, Jev hesitates and hands the flight to a human. Where only one option works, it acts.
 
 ### Things we measured and did not keep
