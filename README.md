@@ -13,7 +13,7 @@ Real aircraft (OpenSky) and real weather (GFS) recorded over Eastern Canada duri
 ## The problem
 - **Contrails are aviation's biggest climate lever after fuel.** Contrail cirrus is the largest single term of aviation's climate forcing: about 57% of its net effective radiative forcing in 2018 (57.4 of 100.9 mW/m², wide uncertainty range), more than aviation's CO₂ (34.3) ([Lee et al., 2021](https://doi.org/10.1016/j.atmosenv.2020.117834)).
 - **A few flights cause most of it.** Persistent contrails only form in thin, ice-supersaturated layers, so moving a flight 2,000 ft up or down is often enough.
-- **It works when flights follow the plan** (−54% contrails for ~2% extra fuel on the diverted flights, Google / American Airlines trial, 2023), but the dispatcher has to know *which* flight, *which* level, and *whether to trust the forecast*.
+- **It works on the flights that follow the plan** (−54% contrails in a 2023 Google / American Airlines test; −62% in a 2025 randomised trial), **but adoption is the bottleneck:** only 112 of ~1,200 eligible flights flew the avoidance plan, so the whole group saw −11.6% ([Sankar et al., 2026](https://arxiv.org/abs/2603.06909)). The dispatcher has to know *which* flight, *which* level, and *whether to trust the forecast*: that is the problem TrailSense addresses. All quoted numbers are checked in [`docs/fact_check.md`](docs/fact_check.md).
 - **Doing that with a big LLM on every flight is slow, expensive and unreliable.** Our benchmark below shows it.
 
 ## What it does
@@ -78,6 +78,7 @@ Where two options are almost equally good (AAL278: +3,737 vs +3,733 kg CO₂e) a
 
 ## Honest limits
 - GFS caps humidity at 100% and represents ice supersaturation poorly; our 95% threshold is a tuning choice. That is exactly why the confidence and the human-review route exist.
+- Over the open ocean OpenSky sees almost no aircraft (no ground receivers), so we recorded Eastern Canada and Europe, not the North Atlantic.
 - Aircraft type, winds and real traffic are not modelled; the CO₂e factor per km has a ×3 uncertainty range ([`docs/hypotheses.md`](docs/hypotheses.md)).
 - The benchmark is a small sample (one flagged flight per cycle) with a small local model (3B parameters). Local Wh = 25 W × generation time (estimate). Jev runs on TypeSafe's servers: we report its calls and tokens, not its energy.
 - TrailSense never moves an aircraft: it advises the dispatcher, who requests the level from ATC as usual.
