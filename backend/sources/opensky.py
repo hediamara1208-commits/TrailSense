@@ -31,7 +31,7 @@ MS_TO_KT = 1.943844
 # Index des champs d'un "state vector" OpenSky
 I_ICAO24, I_CALLSIGN, I_LAST_CONTACT = 0, 1, 4
 I_LON, I_LAT, I_BARO_ALT, I_ON_GROUND = 5, 6, 7, 8
-I_VELOCITY, I_TRACK = 9, 10
+I_VELOCITY, I_TRACK, I_VRATE = 9, 10, 11
 
 _token: dict = {"value": None, "expires_at": 0.0}
 # Rempli après un 429 : on n'appelle plus avant cette date (epoch s)
@@ -63,6 +63,8 @@ def parse_state(s: list, ts: int) -> Aircraft | None:
     """Convertit un state vector en Aircraft, ou None s'il n'est pas en croisière."""
     if s[I_ON_GROUND] or s[I_LAT] is None or s[I_LON] is None or s[I_BARO_ALT] is None:
         return None
+    if abs(s[I_VRATE] or 0.0) > config.MAX_VERTICAL_RATE_MS:
+        return None  # en montée ou en descente : pas en croisière, pas d'avis
     fl = to_flight_level(s[I_BARO_ALT])
     if not (config.MIN_FLIGHT_LEVEL <= fl <= config.MAX_FLIGHT_LEVEL):
         return None
@@ -80,7 +82,7 @@ def parse_state(s: list, ts: int) -> Aircraft | None:
 
 
 def fetch_aircraft(bbox: dict | None = None) -> list[Aircraft]:
-    """Avions en croisière (FL290-410, en vol) dans la boîte. Liste vide en cas d'erreur ou de 429."""
+    """Avions en croisière (FL290-410, en vol, palier stable) dans la boîte. Liste vide en cas d'erreur ou de 429."""
     global _blocked_until
     bbox = bbox or config.BBOX
     if time.time() < _blocked_until:

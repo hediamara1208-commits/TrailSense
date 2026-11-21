@@ -15,6 +15,8 @@ RH_CONVENTION = "unknown"
 # On n'analyse que les avions en croisière (FL290-FL410, zone RVSM)
 MIN_FLIGHT_LEVEL = 290
 MAX_FLIGHT_LEVEL = 410
+# Avions en montée/descente exclus : |vertical_rate| > 2,5 m/s (~500 ft/min) = pas en croisière
+MAX_VERTICAL_RATE_MS = 2.5
 
 # Décalage proposé : 2 000 ft = 20 FL, garde la parité est/ouest
 LEVEL_STEP = 20
@@ -43,6 +45,10 @@ REFRESH_S = 30
 RECORD_S = 300
 # Météo : une fois par heure suffit (GFS n'est mis à jour que toutes les 6 h)
 RECORD_WEATHER_INTERVAL_S = 3600
+# Météo enregistrée sur une grille fixe couvrant toute la BBOX (pas seulement les cellules des avions),
+# pour que chaque avion rejoué ait un profil. 1° -> 7 × 17 = 119 points ≈ 2 appels groupés par heure.
+# (Open-Meteo gratuit = 10 000 appels/jour, pondérés par nb de points et de variables : ~6 000/jour ici.)
+RECORD_GRID_DEG = 1.0
 
 # Benchmark tout-LLM : limité pour ne pas exploser le coût
 BENCHMARK_MAX_FLIGHTS = 20
