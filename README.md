@@ -93,6 +93,8 @@ Where two options are almost equally good (AAL278: +3,737 vs +3,733 kg CO₂e) a
 
 ## Honest limits
 - GFS caps humidity at 100% and represents ice supersaturation poorly; our 95% threshold is a tuning choice. That is exactly why the confidence and the human-review route exist.
+- We also tried ECMWF, the best global model ([`backend/physics/compare_models.py`](backend/physics/compare_models.py)): its public feed is capped at 100% too, and at the 9 aircraft GFS flagged on a Europe cycle it gives 51-93%. Thin humid layers are placed differently by each model: humidity at cruise altitude is the weak link of every contrail forecast, which is what Jev's low forecast-reliability scores reflect.
+- **Next step:** act automatically only when GFS and ECMWF agree, turning model disagreement into a confidence signal (the forecast guardrail above is already in the code).
 - Over the open ocean OpenSky sees almost no aircraft (no ground receivers), so we recorded Eastern Canada and Europe, not the North Atlantic.
 - Aircraft type, winds and real traffic are not modelled; the CO₂e factor per km has a ×3 uncertainty range ([`docs/hypotheses.md`](docs/hypotheses.md)).
 - The benchmark is a small sample (one flagged flight per cycle) with a small local model (3B parameters). Local Wh = 25 W × generation time (estimate). Jev runs on TypeSafe's servers: we report its calls and tokens, not its energy.
