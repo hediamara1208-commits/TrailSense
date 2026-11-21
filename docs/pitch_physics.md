@@ -3,6 +3,19 @@
 Target: **30 seconds**, spoken slowly. One slide: a cross-section of the sky with the aircraft at FL350
 inside a blue "ice-supersaturated" layer, and two arrows to FL330 / FL370 (one green, one red).
 
+## The slide (for the deck, D6 final)
+**Image:** `docs/figures/cross_section.png` (full width).
+
+**Title:** Contrails need cold air **and** ice-supersaturated air. Step out of the layer.
+
+**Three lines under the image:**
+1. **Form + persist:** Schmidt-Appleman criterion + RHi ≥ 95 % on GFS weather, at the current level and ±2,000 ft. 37 ms for 451 aircraft.
+2. **Night matters most:** Europe, same morning: night cycle 14 flights → ≈ 83 t CO2e avoided; day cycle 22 flights → ≈ 42 t.
+3. **Honest about uncertainty:** threshold 95 % (3 flights; 6 at 90 %), CO2e shown with a ÷3 to ×3 range.
+
+**Speaker cue (example from the demo):** RUK54ST at FL370: 225 km of supersaturated air ahead. Climbing to FL390 costs 13 kg of fuel
+(41 kg CO₂) and avoids ≈ 3.3 t CO2e.
+
 ## The 30-second script
 
 > "A contrail needs two things.
@@ -78,3 +91,33 @@ The *count* is sensitive: going from 95 % to 90 % doubles the flagged flights (3
 of aircraft, so the core message holds: a handful of flights matters. 100 % flags nothing because GFS caps humidity at
 100 %, which is exactly why a threshold below 100 is needed. We picked 95 %, the conservative end: it gives the smallest
 claimed benefit, and Jev's low forecast-reliability score sends these borderline cases to a human.
+
+## More physics questions (Sat afternoon)
+
+**"Why not over the North Atlantic, where most long-haul traffic is?"**
+We tried. Our free aircraft source, OpenSky, relies on ground receivers, so it sees almost nothing over the ocean.
+In a real deployment the dispatcher already has every flight plan and position (satellite ADS-B),
+so the same physics runs on oceanic tracks unchanged.
+
+**"Your CO2e factor is uncertain by ×3. Doesn't that kill the result?"**
+No, because the cost side is tiny. RUK54ST avoids ≈ 3.3 t CO2e for 41 kg of CO₂ from extra fuel: even divided by 3,
+the benefit is 25 times the cost; it would take a factor ~80 error to flip the sign. The uncertainty changes *how much*
+we gain, rarely *whether* we gain. That's why we show a range, not a single number.
+
+**"GFS caps humidity at 100 %. How can you detect supersaturation?"**
+We can't see *how* supersaturated the air is, only that it is at or near saturation over ice. So we flag RHi ≥ 95 %
+and treat it as a candidate, not a certainty. Jev's low forecast-reliability score on these cases sends them to a human.
+Better humidity data (e.g. ERA5 with a humidity correction, or on-board sensors) would plug straight in.
+
+**"Why does the day cycle have more flagged flights but less benefit?"**
+By day a contrail also reflects sunlight, which partly offsets its warming, so we count 15 kg CO2e per km instead of 50 at night.
+More flights flagged, half the climate gain: the night flights are the ones worth moving first.
+
+**"Some 'dry' target levels are at 94 % RHi. Isn't that borderline?"**
+Yes, and we don't hide it: at a lower threshold the target would count as humid too, and the option would disappear.
+That's exactly the threshold-sensitivity table above (90 %: benefit changes). These are the cases where the agent's
+confidence is lower and a human reviews the decision.
+
+**"Why do some flagged flights get no recommendation?"**
+When the levels above and below are also supersaturated, moving only burns fuel without avoiding the contrail.
+The code then decides "maintain" on its own, without even calling Jev: in the Europe cycles, 4 of 14 at night and 5 of 22 by day.
