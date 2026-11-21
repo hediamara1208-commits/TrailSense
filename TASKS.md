@@ -35,6 +35,19 @@
 - [ ] **H8 · Sat afternoon/evening** Final interface **built with Lovable** (decided Sat 01:57): prompt + example in `docs/lovable.md`, then pull the Lovable repo, point `fetchSnapshot()` at `/api/snapshot`, serve the build from FastAPI. Replay/Live toggle, benchmark button, best demo cycles. Plan B: the current `frontend/`.
 - [ ] **H9 · Sun morning** Backup video + submission README (GIF, instructions, sources).
 
+## Hackathon tools: getting the most out of them (plan agreed Sat 02:30)
+Order: tonight (1), Saturday morning (3) → (2) → H7, Saturday alongside (4) and the extras.
+
+- [ ] **T1 · Sat night, Lovable public demo:** `scripts/export_snapshots.py` writes 5-10 real recorded cycles as JSON into the Lovable app, which reads them when no API is reachable. Publish (lovable.app URL) → QR code on the last slide, for judges and Popular Vote.
+- [ ] **T2 · Sat morning, Jev grouped call + uncertainty:** all flagged flights of a cycle in ONE request (fewer calls/tokens on the receipt); show Jev's per-option probabilities as bars in the flight panel. Hedi: ask the TypeSafe team at the venue for 5 min of feedback ("reviewed with TypeSafe's engineers").
+- [ ] **T3 · Sat morning, IBM Granite local tier (= H5b):** Hedi installs Ollama; Cloud LLM wires `granite_advisory()` + local Wh. Also unlocks H7 if Cloud LLM credits never arrive. Cut-off 15:00.
+- [ ] **T4 · Sat, 1Password:** shared vault with Dawud (Jev, OpenSky, Cloud LLM keys), `op run --env-file=.env -- python scripts/run_api.py`, README section. Hedi installs the 1Password CLI and signs in.
+- [ ] **T5 · Sat, Cloud LLM:** if Ed hasn't replied by 10:00, go to the Cloud LLM Builder Club in person. Cloud LLM writes the 1-2 key advisories + the all-LLM side of H7 (EcoLogits). README line: "built with help from Cloud LLM".
+- [ ] **X1 · Lovable booth:** show them the app.
+- [ ] **X2 · Discord #meme-submissions:** one contrail meme.
+- [ ] **X3 · Énergie 3R:** 2-minute chat to test the Sustainability angle.
+- [ ] **X4 · TypeSafe:** feedback on our Jev usage (see T2).
+
 ## Pitch: shared
 - **Hedi:** the story (hook, Sophie, System 1 / System 2), the demo, the receipt and the benchmark.
 - **Dawud:** the physics in 30 seconds, and the jury's science questions.
