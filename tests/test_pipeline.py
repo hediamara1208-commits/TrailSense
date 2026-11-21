@@ -23,7 +23,11 @@ def humid_profile(lat, lon, wet_hpa=(250, 225)):
 def replay(tmp_path, monkeypatch):
     monkeypatch.setattr(recorder, "REPLAY_DIR", tmp_path)
     monkeypatch.setattr(config, "RH_CONVENTION", "ice")
-    monkeypatch.setattr(config, "USE_JEV", True)  # jev.decide not built -> must fall back cleanly
+    monkeypatch.setattr(config, "USE_JEV", True)
+
+    def jev_down(*args, **kwargs):  # never spend real Jev credits in tests
+        raise RuntimeError("Jev unavailable in tests")
+    monkeypatch.setattr(pipeline.jev, "decide", jev_down)  # -> must fall back cleanly
     pipeline._cache.clear()
     weather = [asdict(humid_profile(lat, lon)) for lat in range(46, 54) for lon in range(-70, -58)]
     planes = [
@@ -38,7 +42,7 @@ def replay(tmp_path, monkeypatch):
 def test_cycle_end_to_end(replay):
     snap = pipeline.run_cycle("replay", 0.8, 0)
     assert snap.receipt.aircraft_scanned == 2
-    assert snap.receipt.jev_calls == 0          # Jev not built yet: fallback rule, free
+    assert snap.receipt.jev_calls == 0          # Jev down: fallback rule, free
     flagged = {a.icao24 for a in snap.assessments if a.flagged}
     assert {d.icao24 for d in snap.decisions} == flagged
     assert len(snap.advisories) == len(snap.decisions)
