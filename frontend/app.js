@@ -31,7 +31,7 @@ async function refresh() {
   const decisions = byId(snap.decisions);
   const advisories = byId(snap.advisories);
 
-  document.getElementById("mode").textContent = `mode: ${snap.mode}`;
+  document.getElementById("mode").textContent = `mode: ${snap.mode} · ${snap.source || ""}`;
   planeLayer.clearLayers();
   for (const plane of snap.aircraft) {
     const a = assessments[plane.icao24], d = decisions[plane.icao24];
@@ -62,8 +62,9 @@ function showPanel(plane, a, d, adv) {
     }
   }
   if (d) {
+    const by = { jev: "Jev", rule: "fallback rule (Jev unavailable)", physics: "physics: no beneficial option, no Jev call" };
     html += `<p class="decision">Decision: <b>${d.action}</b> · confidence ${d.confidence}
-      → ${d.route === "auto" ? "sent automatically" : "Sophie reviews"}</p>`;
+      → ${d.route === "auto" ? "sent automatically" : "Sophie reviews"}<br><small>decided by: ${by[d.decided_by] || d.decided_by}</small></p>`;
   }
   if (adv) html += `<blockquote>${adv.text}<br><small>written by: ${adv.written_by}</small></blockquote>`;
   document.getElementById("panel").innerHTML = html;
@@ -74,6 +75,7 @@ function showReceipt(r) {
   document.getElementById("receipt").textContent =
     `Compute receipt · ${r.aircraft_scanned} planes scanned · ${r.flagged_by_physics} flagged by physics · ` +
     `${r.physics_ms} ms physics · ${r.weather_calls} weather call(s), ${r.weather_cache_hits} cache hit(s) · ${r.jev_calls} Jev call(s) · ` +
+    `${r.latency_ms} ms total · ` +
     `${r.local_llm_calls} Granite · ${r.llm_calls} Claude · ${(r.llm_energy_wh + r.local_llm_energy_wh).toFixed(2)} Wh · $${r.cost_usd}`;
 }
 
