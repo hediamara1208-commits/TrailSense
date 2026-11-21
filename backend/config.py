@@ -4,7 +4,13 @@
 BBOX = {"lamin": 44.0, "lamax": 50.0, "lomin": -80.0, "lomax": -64.0}
 
 # Niveaux de pression GFS disponibles sur Open-Meteo autour de l'altitude de croisière
-PRESSURE_LEVELS_HPA = [300, 275, 250, 225, 200]
+# 200 hPa ≈ FL385 : on ajoute 175 (≈ FL420) et 150 pour couvrir FL390-410 et la montée.
+# À vérifier par un appel test sur Open-Meteo GFS (la doc liste 300, 275, 250, 225, 200, 175, 150).
+PRESSURE_LEVELS_HPA = [300, 275, 250, 225, 200, 175, 150]
+
+# Convention de l'humidité GFS à ces températures : "water" ou "ice". À fixer après vérification
+# (D3). Si "ice", physics ne refait PAS la conversion eau -> glace.
+RH_CONVENTION = "unknown"
 
 # On n'analyse que les avions en croisière (FL290-FL410, zone RVSM)
 MIN_FLIGHT_LEVEL = 290
@@ -26,8 +32,10 @@ MAX_LLM_ADVISORIES = 3
 # Intervalle de rafraîchissement en mode live (secondes, OpenSky anonyme = 10 s mini)
 REFRESH_S = 30
 
-# Enregistrement de nuit : économiser les crédits OpenSky (une capture toutes les 5-10 min)
-RECORD_INTERVAL_S = 600
+# Enregistrement de nuit : la boîte fait ~96 degrés carrés = 2 crédits OpenSky par appel.
+# En anonyme, un appel toutes les 30 s épuise les crédits en ~1 h 40.
+# -> créer un compte OpenSky gratuit, et une capture toutes les 2 à 5 min.
+RECORD_S = 300
 # Météo : une fois par heure suffit (GFS n'est mis à jour que toutes les 6 h)
 RECORD_WEATHER_INTERVAL_S = 3600
 

@@ -17,12 +17,16 @@ donc on affiche des probabilités, pas des certitudes.
 from backend.models import Aircraft, LevelRisk, RiskAssessment, WeatherProfile
 
 
-def rh_ice_from_rh_water(rh_water_pct: float, temperature_c: float) -> float:
-    """Convertit l'humidité relative / eau en humidité relative / glace."""
+def rh_ice(rh_pct: float, temperature_c: float) -> float:
+    """Renvoie l'humidité relative par rapport à la glace selon config.RH_CONVENTION.
+
+    - "ice"   : rh_pct est déjà par rapport à la glace -> renvoyer tel quel (ne pas convertir deux fois).
+    - "water" : RHi = rh_pct * e_sat_eau(T) / e_sat_glace(T).
+    """
     raise NotImplementedError
 
 
-def sac_satisfied(temperature_c: float, pressure_hpa: float, rh_water_pct: float,
+def sac_satisfied(temperature_c: float, pressure_hpa: float, rh_pct: float,
                   eta: float = 0.35) -> bool:
     """True si le critère de Schmidt-Appleman est rempli."""
     raise NotImplementedError
@@ -39,8 +43,10 @@ def is_night(lat: float, lon: float, timestamp: int) -> bool:
 
 
 def assess(aircraft: Aircraft, profile: WeatherProfile) -> RiskAssessment:
-    """Risque au niveau actuel, à +20 FL et à -20 FL, plus la pénalité carburant.
+    """Risque au niveau actuel, à +20 FL et à -20 FL, et le bilan chiffré de chaque option.
 
     flagged = current.persistent
+    Remplit aussi minutes_in_issr, fuel_penalty_kg, warming_avoided_co2e_kg et
+    net_benefit_co2e_kg (via physics/fuel.py). Jev ne calcule rien : il choisit à partir de ces chiffres.
     """
     raise NotImplementedError
