@@ -12,7 +12,7 @@ Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de
 ## Comment : penser vite, puis lentement
 1. **Physique (gratuit) :** critère de Schmidt-Appleman + sursaturation en glace, au niveau actuel et à ±2 000 ft.
 2. **Jev (Système 1) :** décision typée et calibrée pour les vols signalés, avec un seuil d'autonomie.
-3. **LLM (Système 2) :** rédige seulement les 2-3 avis les plus importants.
+3. **Rédaction en cascade (Système 2) :** gabarit gratuit, puis IBM Granite en local, puis Claude seulement pour les 1-2 avis clés.
 4. **Reçu de calcul** et **benchmark** contre un agent tout-LLM.
 
 Voir [`ARCHITECTURE.md`](ARCHITECTURE.md) et [`TASKS.md`](TASKS.md).
