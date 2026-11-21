@@ -4,13 +4,13 @@
 BBOX = {"lamin": 44.0, "lamax": 50.0, "lomin": -80.0, "lomax": -64.0}
 
 # Niveaux de pression GFS disponibles sur Open-Meteo autour de l'altitude de croisière
-# 200 hPa ≈ FL385 : on ajoute 175 (≈ FL420) et 150 pour couvrir FL390-410 et la montée.
+# 350 hPa (≈ FL265) pour que FL290-300 soient encadrés. 200 hPa ≈ FL385 : on ajoute 175 (≈ FL420) et 150 pour couvrir FL390-410 et la montée.
 # À vérifier par un appel test sur Open-Meteo GFS (la doc liste 300, 275, 250, 225, 200, 175, 150).
-PRESSURE_LEVELS_HPA = [300, 275, 250, 225, 200, 175, 150]
+PRESSURE_LEVELS_HPA = [350, 300, 275, 250, 225, 200, 175, 150]
 
 # Convention de l'humidité GFS à ces températures : "water" ou "ice". À fixer après vérification
 # (D3). Si "ice", physics ne refait PAS la conversion eau -> glace.
-RH_CONVENTION = "unknown"
+RH_CONVENTION = "ice"  # provisoire : RH = 100 % pile à -49,5 °C (si /eau -> ~155 % /glace, irréaliste)
 
 # On n'analyse que les avions en croisière (FL290-FL410, zone RVSM)
 MIN_FLIGHT_LEVEL = 290
@@ -55,3 +55,24 @@ BENCHMARK_MAX_FLIGHTS = 20
 
 # Plan B : si Jev est indisponible (API en panne, accès anticipé bloqué), on bascule sur la règle codée
 USE_JEV = True
+
+
+# ---------- Physique (Dawud) : toutes les hypothèses réglables, documentées dans docs/hypotheses.md ----------
+# Persistance : RHi >= seuil. GFS plafonne à 100 % et sous-estime la sursaturation -> 95 % (choix de réglage).
+RHI_THRESHOLD = 95.0
+# Rendement propulsif global pour le critère de Schmidt-Appleman (moteurs modernes ~0,3-0,4)
+SAC_ETA = 0.35
+# Niveaux de vol envisageables pour une option ±2 000 ft
+OPTION_MIN_FL = 280
+OPTION_MAX_FL = 430
+# Longueur typique d'une zone sursaturée traversée (Gierens & Spichtinger 2000 : ~150 km en moyenne)
+ISSR_TYPICAL_KM = 150.0
+# Consommation de croisière générique (type d'avion inconnu dans OpenSky) : mélange monocouloirs / gros porteurs
+CRUISE_FUEL_FLOW_KG_H = 3000.0
+# Surconsommation hors niveau optimal pendant la déviation (ordre de grandeur des essais publiés : ~2 %)
+FUEL_PENALTY_PCT = {"climb": 1.5, "descend": 2.0}
+# Réchauffement d'un contrail persistant, en kg CO2e (horizon 100 ans) par km de contrail.
+# ESTIMATION LA PLUS INCERTAINE DU PROJET : ordre de grandeur, fourchette x0,3 à x3 affichée.
+# La nuit compte plus : le contrail piège la chaleur sans réfléchir le soleil.
+CONTRAIL_CO2E_KG_PER_KM = {"night": 100.0, "day": 40.0}
+CONTRAIL_UNCERTAINTY_FACTOR = 3.0
