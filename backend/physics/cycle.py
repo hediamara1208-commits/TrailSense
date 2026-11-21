@@ -1,14 +1,14 @@
-"""[DAWUD] Point d'entrée physique pour pipeline.py : un cycle complet en un appel.
+"""[DAWUD] Physics entry point for pipeline.py: one full cycle in one call.
 
     from backend.physics.cycle import assess_cycle, live_cycle_data
-    data = load_replay(i)              # mode Replay
-    data = live_cycle_data()           # mode Live (OpenSky + Open-Meteo)
+    data = load_replay(i)              # Replay mode
+    data = live_cycle_data()           # Live mode (OpenSky + Open-Meteo)
     aircraft, assessments, stats = assess_cycle(data)
 
-- aircraft     : list[Aircraft] du cycle (pour la carte)
-- assessments  : list[RiskAssessment], un par avion évaluable (les None sont déjà écartés)
+- aircraft     : list[Aircraft] of the cycle (for the map)
+- assessments  : list[RiskAssessment], one per assessable aircraft (None results already dropped)
 - stats        : {"aircraft_scanned", "flagged_by_physics", "weather_calls", "weather_cache_hits",
-                  "physics_ms"} -> à recopier dans le Receipt
+                  "physics_ms"} -> copy into the Receipt
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from backend.physics.contrails import assess
 from backend.sources import opensky, weather
 from backend.sources.recorder import grid_points, nearest_profile
 
-MAX_PROFILE_DIST_DEG = 1.0  # au-delà, pas de météo fiable pour ce point
+MAX_PROFILE_DIST_DEG = 1.0  # beyond this, no reliable weather for the point
 
 
 def to_profile(d: dict | WeatherProfile) -> WeatherProfile:
@@ -30,7 +30,7 @@ def to_profile(d: dict | WeatherProfile) -> WeatherProfile:
 
 
 def _profile_lookup(profiles: list[dict]):
-    """Fonction (lat, lon) -> profil le plus proche, ou None si trop loin de la grille."""
+    """Function (lat, lon) -> nearest profile, or None if too far from the grid."""
     cache: dict[int, WeatherProfile] = {}
 
     def profile_at(lat: float, lon: float) -> WeatherProfile | None:
@@ -42,7 +42,7 @@ def _profile_lookup(profiles: list[dict]):
 
 
 def live_cycle_data() -> dict:
-    """Un cycle Live au même format qu'un fichier de replay (grille météo complète, en cache)."""
+    """One Live cycle in the same format as a replay file (full weather grid, cached)."""
     planes = opensky.fetch_aircraft(config.BBOX)
     ts = max((a.timestamp for a in planes), default=int(time.time()))
     from dataclasses import asdict

@@ -1,11 +1,11 @@
-"""[DAWUD] Coût carburant, CO₂, et réchauffement évité d'un changement de niveau.
+"""[DAWUD] Fuel cost, CO₂, and avoided warming of a level change.
 
-Hypothèses (toutes réglables dans config.py, sourcées dans docs/hypotheses.md) :
-- Type d'avion inconnu (OpenSky ne le donne pas) -> consommation de croisière générique.
-- Pénalité = quelques % de la consommation pendant la déviation (~2 % dans les essais publiés).
-- 3,16 kg de CO₂ par kg de kérosène brûlé.
-- Réchauffement d'un contrail persistant : facteur CO2e par km, plus fort la nuit. C'est
-  l'estimation la plus incertaine : on affiche une fourchette (÷/× CONTRAIL_UNCERTAINTY_FACTOR).
+Assumptions (all tunable in config.py, sourced in docs/hypotheses.md):
+- Aircraft type unknown (OpenSky does not provide it) -> generic cruise fuel flow.
+- Penalty = a few % of fuel burn during the deviation (~2 % in published trials).
+- 3.16 kg of CO₂ per kg of kerosene burned.
+- Warming of a persistent contrail: CO2e factor per km, higher at night. This is
+  the most uncertain estimate: we show a range (÷/× CONTRAIL_UNCERTAINTY_FACTOR).
 """
 from __future__ import annotations
 
@@ -16,13 +16,13 @@ KT_TO_KMH = 1.852
 
 
 def minutes_in_issr(speed_kt: float) -> float:
-    """Temps passé dans la zone sursaturée : longueur typique d'une zone / vitesse sol."""
+    """Time spent in the supersaturated region: typical region length / ground speed."""
     kmh = max(speed_kt, 1.0) * KT_TO_KMH
     return config.ISSR_TYPICAL_KM / kmh * 60.0
 
 
 def fuel_penalty_kg(aircraft_type: str | None, minutes_deviated: float, direction: str) -> float:
-    """Carburant supplémentaire pour voler 2 000 ft plus haut ou plus bas pendant X minutes."""
+    """Extra fuel to fly 2,000 ft higher or lower for X minutes."""
     pct = config.FUEL_PENALTY_PCT.get(direction, 2.0) / 100.0
     return config.CRUISE_FUEL_FLOW_KG_H * minutes_deviated / 60.0 * pct
 
@@ -32,17 +32,17 @@ def co2_kg(fuel_kg: float) -> float:
 
 
 def warming_avoided_co2e_kg(minutes_in_issr: float, speed_kt: float, is_night: bool) -> float:
-    """Réchauffement évité (kg CO2e) = longueur de contrail évitée × facteur jour/nuit."""
+    """Avoided warming (kg CO2e) = avoided contrail length × day/night factor."""
     km = minutes_in_issr / 60.0 * speed_kt * KT_TO_KMH
     return km * config.CONTRAIL_CO2E_KG_PER_KM["night" if is_night else "day"]
 
 
 def warming_range_co2e_kg(central: float) -> tuple[float, float]:
-    """Fourchette basse / haute à afficher à côté de la valeur centrale."""
+    """Low / high range to show next to the central value."""
     f = config.CONTRAIL_UNCERTAINTY_FACTOR
     return central / f, central * f
 
 
 def net_benefit_co2e_kg(warming_avoided: float, fuel_penalty: float) -> float:
-    """Bilan net d'une option = réchauffement évité - CO2 du carburant supplémentaire."""
+    """Net benefit of an option = avoided warming - CO2 of the extra fuel."""
     return warming_avoided - co2_kg(fuel_penalty)
