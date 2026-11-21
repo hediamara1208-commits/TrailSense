@@ -22,7 +22,7 @@
 - [ ] **H0 · Fri night** Ask the McGill Claude Builder Club for Claude API credits *(DM sent to Ed, Fri 23:13, waiting)*. Create a shared 1Password vault with Dawud for the keys (Jev, Anthropic, OpenSky).
 - [x] **H1 · Fri night** Jev key created; the 4 questions validated in the playground (TEST101: descend_2000, confidence 0.97, 16 ms; TEST202: maintain, confidence 0.14 → human review). Rule added: no option with a positive net benefit → MAINTAIN without calling Jev.
 - [x] **H2 · Fri night** `api.py` serves the fixture + `frontend/`: Leaflet map, planes colored by status, flight panel, threshold slider, receipt.
-- [ ] **H3 · Sat morning** `agent/jev.py`: `build_state()` + `decide()` with the threshold. Test the grouped call.
+- [x] **H3 · Sat morning** `agent/jev.py`: `build_state()` + `decide()` with the threshold. Test the grouped call. *(Done Sat 01:50: raw API via httpx, one call per flight. First real call on a synthetic humid night flight: climb_2000, confidence 0.96 → auto, 804 input tokens, 217 ms round trip. Grouped call still to test.)*
 - [x] **H4 · Sat morning** `agent/fallback.py`: **plan B without Jev** (hard-coded rule, same output as `decide()`).
 - [ ] **H5 · Sat noon** `agent/writer.py`: template + Claude for the 1-2 key flights + EcoLogits. *(Template and `route_writers` done Sat 01:45; Claude and Granite tiers still to do: the pipeline falls back to the template.)*
 - [ ] **H5b · Sat afternoon (optional)** **Local Granite** tier: install Ollama, `ollama pull` the Granite model, `granite_advisory()`, local Wh measurement. **Cut-off: if it doesn't work by 15:00 Saturday, `USE_GRANITE = False` and we stop.**
