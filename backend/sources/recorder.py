@@ -24,21 +24,34 @@ from backend.sources import opensky, weather
 log = logging.getLogger(__name__)
 
 REPLAY_DIR = Path(__file__).resolve().parents[2] / "data" / "replay"
-_last_weather_hour: int | None = None
 
 
-# One-shot capture regions (python -m backend.sources.recorder --once --region NAME).
-# Kept under ~500 square degrees so a snapshot costs at most 4 OpenSky credits.
+# Recording regions. "east_canada" (config.BBOX) is the main one, saved to data/replay/.
+# Extra regions go to data/regions/<name>/ and use a coarser 2° weather grid every 6 h, so that
+# all regions together stay under the Open-Meteo free tier (10,000 weighted calls/day):
+#   east_canada    1°, every 3 h : 325 pts -> ~6,300/day
+#   north_atlantic 2°, every 6 h : 144 pts -> ~1,400/day
+#   europe         2°, every 6 h :  77 pts -> ~  750/day
+#   us_northeast   2°, every 6 h :  35 pts -> ~  350/day
+# OpenSky: 2-4 credits per region every 5 min -> ~3,000/day for all four, under the 4,000 limit.
 REGIONS = {
-    "east_canada": config.BBOX,
-    "north_atlantic": {"lamin": 45.0, "lamax": 60.0, "lomin": -50.0, "lomax": -20.0},
-    "europe": {"lamin": 44.0, "lamax": 56.0, "lomin": -5.0, "lomax": 15.0},
-    "us_northeast": {"lamin": 38.0, "lamax": 46.0, "lomin": -80.0, "lomax": -68.0},
+    "east_canada": {"bbox": config.BBOX, "grid_deg": config.RECORD_GRID_DEG,
+                    "weather_s": config.RECORD_WEATHER_INTERVAL_S},
+    "north_atlantic": {"bbox": {"lamin": 45.0, "lamax": 60.0, "lomin": -50.0, "lomax": -20.0},
+                       "grid_deg": 2.0, "weather_s": 21600},
+    "europe": {"bbox": {"lamin": 44.0, "lamax": 56.0, "lomin": -5.0, "lomax": 15.0},
+               "grid_deg": 2.0, "weather_s": 21600},
+    "us_northeast": {"bbox": {"lamin": 38.0, "lamax": 46.0, "lomin": -80.0, "lomax": -68.0},
+                     "grid_deg": 2.0, "weather_s": 21600},
 }
 
 
+def region_dir(region: str) -> Path:
+    return REPLAY_DIR if region == "east_canada" else REPLAY_DIR.parent / "regions" / region
+
+
 def record_cycle(with_weather: bool = True, bbox: dict | None = None,
-                 out_dir: Path | None = None) -> str | None:
+                 out_dir: Path | None = None, grid_deg: float | None = None) -> str | None:
     """Fetch aircraft (+ weather if asked) once and write <out_dir>/<timestamp>.json.
 
     Returns the path, or None if OpenSky returned nothing (429, network...).
@@ -54,7 +67,7 @@ def record_cycle(with_weather: bool = True, bbox: dict | None = None,
     if with_weather:
         # Fixed grid over the whole BBOX: every replayed aircraft (even one arriving later,
         # in another cell) will have a nearby profile.
-        profs = weather.get_profiles_batch(grid_points(bbox), ts)
+        profs = weather.get_profiles_batch(grid_points(bbox, grid_deg), ts)
         profiles = [asdict(p) for p in profs.values()]
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"{ts}.json"
@@ -81,19 +94,19 @@ def nearest_profile(profiles: list[dict], lat: float, lon: float) -> dict | None
     return min(profiles, key=lambda p: (p["lat"] - lat) ** 2 + (p["lon"] - lon) ** 2)
 
 
-def replay_files() -> list[Path]:
-    return sorted(REPLAY_DIR.glob("*.json"), key=lambda p: int(p.stem))
+def replay_files(region: str = "east_canada") -> list[Path]:
+    return sorted(region_dir(region).glob("*.json"), key=lambda p: int(p.stem))
 
 
-def load_replay(index: int) -> dict:
+def load_replay(index: int, region: str = "east_canada") -> dict:
     """Load cycle number `index` (sorted by timestamp), wrapping around at the end.
 
     If a cycle has no weather (recorded only every few hours), reuse the weather
     of the closest previous cycle that has it.
     """
-    files = replay_files()
+    files = replay_files(region)
     if not files:
-        raise FileNotFoundError("No recording in data/replay/")
+        raise FileNotFoundError(f"No recording in {region_dir(region)}")
     i = index % len(files)
     data = json.loads(files[i].read_text())
     j = i
@@ -103,17 +116,23 @@ def load_replay(index: int) -> dict:
     return data
 
 
-def run_forever() -> None:
-    """Recording loop: aircraft every RECORD_S, weather at most once per RECORD_WEATHER_INTERVAL_S."""
-    global _last_weather_hour
-    log.info("Recording to %s (aircraft every %d s, weather every %d s). Ctrl+C to stop.",
-             REPLAY_DIR, config.RECORD_S, config.RECORD_WEATHER_INTERVAL_S)
+def run_forever(region: str = "east_canada") -> None:
+    """Recording loop for one region: aircraft every RECORD_S, weather at most once per its interval.
+
+    Run one terminal per region to record several regions at the same time.
+    """
+    r = REGIONS[region]
+    out = region_dir(region)
+    last_slot = None
+    log.info("Recording %s to %s (aircraft every %d s, weather every %d s). Ctrl+C to stop.",
+             region, out, config.RECORD_S, r["weather_s"])
     while True:
-        hour_slot = int(time.time()) // config.RECORD_WEATHER_INTERVAL_S
-        need_weather = hour_slot != _last_weather_hour
+        slot = int(time.time()) // r["weather_s"]
+        need_weather = slot != last_slot
         try:
-            if record_cycle(with_weather=need_weather) and need_weather:
-                _last_weather_hour = hour_slot
+            if record_cycle(with_weather=need_weather, bbox=r["bbox"], out_dir=out,
+                            grid_deg=r["grid_deg"]) and need_weather:
+                last_slot = slot
         except Exception:  # never stop in the middle of the night
             log.exception("Cycle failed, carrying on")
         time.sleep(config.RECORD_S)
@@ -122,8 +141,9 @@ def run_forever() -> None:
 def snapshot(region: str) -> None:
     """One-shot capture of another region, saved to data/regions/<region>/, then scanned."""
     from backend.physics.cycle import assess_cycle
-    out = REPLAY_DIR.parent / "regions" / region
-    path = record_cycle(with_weather=True, bbox=REGIONS[region], out_dir=out)
+    r = REGIONS[region]
+    path = record_cycle(with_weather=True, bbox=r["bbox"], out_dir=region_dir(region),
+                        grid_deg=r["grid_deg"])
     if path is None:
         print("No aircraft received (quota or network).")
         return
@@ -140,11 +160,11 @@ def snapshot(region: str) -> None:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Record the sky for Replay mode.")
-    parser.add_argument("--once", action="store_true", help="single snapshot of --region, then scan it")
+    parser.add_argument("--once", action="store_true", help="single snapshot of --region, then scan it (default: record forever)")
     parser.add_argument("--region", default="east_canada", choices=sorted(REGIONS))
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     if args.once:
         snapshot(args.region)
     else:
-        run_forever()
+        run_forever(args.region)
