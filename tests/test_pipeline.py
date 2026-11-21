@@ -67,3 +67,13 @@ def test_no_benefit_means_maintain_without_jev(replay):
             d = next(d for d in snap.decisions if d.icao24 == a.icao24)
             assert d.action == Action.MAINTAIN and d.decided_by == "physics"
     assert fallback.best_option is not None
+
+
+def test_guardrail_unreliable_forecast_goes_to_sophie():
+    """A confident climb built on an unreliable forecast is never sent automatically."""
+    from backend.agent.fallback import route_for
+    from backend.models import Action, Route
+    assert route_for(0.96, 0.8, forecast_reliability=0.09, action=Action.CLIMB) == Route.HUMAN
+    assert route_for(0.96, 0.8, forecast_reliability=0.9, action=Action.CLIMB) == Route.AUTO
+    # Keeping the level changes nothing for the crew: no guardrail needed.
+    assert route_for(1.0, 0.8, forecast_reliability=0.09, action=Action.MAINTAIN) == Route.AUTO

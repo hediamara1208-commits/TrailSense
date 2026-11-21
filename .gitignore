@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!.env.1password
 *.pem
 
 # Python
