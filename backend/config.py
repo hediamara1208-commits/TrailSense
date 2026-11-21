@@ -1,8 +1,9 @@
 """Paramètres globaux. Un seul endroit pour les régler pendant la démo."""
 
 # Zone surveillée : élargie à l'est le 21/11 (aucun vol signalé sur le Québec seul la 1re nuit).
-# ~224 degrés carrés = 3 crédits OpenSky par appel (au lieu de 2) : ~860 crédits/jour à 1 appel / 5 min.
-BBOX = {"lamin": 44.0, "lamax": 52.0, "lomin": -80.0, "lomax": -52.0}  # Québec + golfe du Saint-Laurent + Terre-Neuve (entrée de l'Atlantique Nord, plus humide)
+# Puis étendue au nord (Labrador) : 1re capture élargie = zones sursaturées surtout vers 50-52°N.
+# ~288 degrés carrés = 3 crédits OpenSky par appel : ~860 crédits/jour à 1 appel / 5 min.
+BBOX = {"lamin": 44.0, "lamax": 56.0, "lomin": -76.0, "lomax": -52.0}  # Québec, golfe du Saint-Laurent, Terre-Neuve, Labrador (couloir transatlantique, plus humide)
 
 # Niveaux de pression GFS disponibles sur Open-Meteo autour de l'altitude de croisière
 # 350 hPa (≈ FL265) pour que FL290-300 soient encadrés. 200 hPa ≈ FL385 : on ajoute 175 (≈ FL420) et 150 pour couvrir FL390-410 et la montée.
@@ -45,11 +46,11 @@ REFRESH_S = 30
 # -> créer un compte OpenSky gratuit, et une capture toutes les 2 à 5 min.
 RECORD_S = 300
 # Météo : une fois par heure suffit (GFS n'est mis à jour que toutes les 6 h)
-RECORD_WEATHER_INTERVAL_S = 7200
+RECORD_WEATHER_INTERVAL_S = 10800
 # Météo enregistrée sur une grille fixe couvrant toute la BBOX (pas seulement les cellules des avions),
-# pour que chaque avion rejoué ait un profil. 1° -> 9 × 29 = 261 points = 3 appels groupés.
+# pour que chaque avion rejoué ait un profil. 1° -> 13 × 25 = 325 points = 4 appels groupés.
 # Open-Meteo gratuit = 10 000 appels/jour, pondérés par nb de points et de variables (24 var. ≈ ×2,4)
-# -> ~630 « appels » par grille : une grille toutes les 2 h (RECORD_WEATHER_INTERVAL_S) ≈ 7 500/jour.
+# -> ~780 « appels » par grille : une grille toutes les 3 h (RECORD_WEATHER_INTERVAL_S) ≈ 6 300/jour.
 RECORD_GRID_DEG = 1.0
 
 # Benchmark tout-LLM : limité pour ne pas exploser le coût
