@@ -107,7 +107,7 @@ python scripts/run_api.py                             # → http://localhost:800
 python -m pytest -q                                   # 31 tests, no network needed
 ```
 
-**Secrets with [1Password](https://developer.1password.com/docs/cli/secrets-environment-variables/)** (recommended; the repo is public): store the Jev key in a vault named `TrailSense` (item `Jev`, field `credential`), then run anything through `op run`. [`.env.1password`](.env.1password) holds only `op://` references, never a key.
+**Optional: secrets with [1Password](https://developer.1password.com/docs/cli/secrets-environment-variables/)** (the repo is public): store the Jev key in a vault named `TrailSense` (item `Jev`, field `credential`), then run anything through `op run`. [`.env.1password`](.env.1password) holds only `op://` references, never a key.
 ```bash
 op run --env-file=.env.1password -- python scripts/run_api.py
 op run --env-file=.env.1password -- python scripts/export_snapshots.py
@@ -142,7 +142,6 @@ More detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) · plan and progress: [`TASKS.
 - **[Jev](https://typesafe.ai/)** (TypeSafe AI): the System 1 decision with calibrated confidence.
 - **[IBM Granite](https://www.ibm.com/granite)** via [Ollama](https://ollama.com/): local advisories and the benchmark's LLM.
 - **[Lovable](https://lovable.dev/)**: the published frontend.
-- **[1Password](https://1password.com/)** CLI: API keys injected at run time (`op run`), shared between teammates in a vault, never in the repo.
 - **[Cloud LLM](https://www.provider.com/cloud_llm)** (provider): coding assistant throughout the weekend.
 - **Data:** [OpenSky Network](https://opensky-network.org/) (aircraft), [Open-Meteo](https://open-meteo.com/) GFS (weather). **Stack:** Python, FastAPI, httpx, Leaflet, React.
 
