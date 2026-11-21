@@ -26,8 +26,13 @@ WEATHER_TTL_S = 3600
 # Seuil d'autonomie par défaut (curseur dans l'interface)
 DEFAULT_THRESHOLD = 0.8
 
-# Nombre max d'avis rédigés par le LLM par cycle
-MAX_LLM_ADVISORIES = 3
+# Cascade de rédaction des avis : gabarit -> Granite local -> Claude
+MAX_CLAUDE_ADVISORIES = 2      # seulement les plus importants
+MAX_GRANITE_ADVISORIES = 5     # avis courants, rédigés en local
+USE_GRANITE = True             # False si Ollama/Granite ne marche pas : on passe directement à gabarit/Claude
+OLLAMA_URL = "http://localhost:11434"
+GRANITE_MODEL = "granite4:micro"   # nom exact à vérifier avec `ollama list` après `ollama pull`
+CLAUDE_MODEL = "claude-haiku-5-5"  # petit modèle, assez pour rédiger un avis court
 
 # Intervalle de rafraîchissement en mode live (secondes, OpenSky anonyme = 10 s mini)
 REFRESH_S = 30
