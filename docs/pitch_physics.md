@@ -61,3 +61,20 @@ across the fleet.
   and the agent recommends staying put. We never move a flight just to move the contrail.
 - **"What don't you model?"** Wind, the exact aircraft type, real traffic, and detailed radiative transfer (CoCiP).
   All our assumptions are listed in `docs/hypotheses.md`.
+
+## Threshold sensitivity (W5, measured on the whole east_canada recording)
+`python -m backend.physics.scan --sweep`, 59 cycles, 1,231 aircraft positions:
+
+| RHi threshold | flagged positions | unique flights | net CO2e avoided |
+|---|---|---|---|
+| 90 % | 9 | 6 | 47 t |
+| 92.5 % | 6 | 3 | 39 t |
+| **95 % (ours)** | **4** | **3** | **10 t** |
+| 97.5 % | 4 | 3 | 10 t |
+| 100 % | 0 | 0 | 0 |
+
+**"How sensitive is your result to the threshold?"**
+The *count* is sensitive: going from 95 % to 90 % doubles the flagged flights (3 → 6). But in every case it is under 1 %
+of aircraft, so the core message holds: a handful of flights matters. 100 % flags nothing because GFS caps humidity at
+100 %, which is exactly why a threshold below 100 is needed. We picked 95 %, the conservative end: it gives the smallest
+claimed benefit, and Jev's low forecast-reliability score sends these borderline cases to a human.
