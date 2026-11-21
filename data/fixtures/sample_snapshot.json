@@ -1,5 +1,5 @@
 {
- "_note": "Exemple FICTIF (valeurs inventées, y compris le réchauffement évité) pour développer l'interface. Même format que GET /api/snapshot.",
+ "_note": "FICTIONAL example (invented values, including warming avoided) for building the interface. Same format as GET /api/snapshot.",
  "mode": "replay",
  "timestamp": 1795237200,
  "threshold": 0.8,
@@ -160,13 +160,13 @@
   {
    "icao24": "c0ffee",
    "callsign": "TEST101",
-   "text": "TEST101 au FL360 traverse une couche sursaturée en glace (RHi 118 %). Le FL340 est sec. Proposition : descendre de 2 000 ft. Coût : +38 kg de carburant. Confiance : 0,91.",
+   "text": "TEST101 at FL360 is flying through an ice-supersaturated layer (RHi 118%). FL340 is dry. Proposal: descend 2,000 ft. Cost: +38 kg of fuel. Confidence: 0.91.",
    "written_by": "claude"
   },
   {
    "icao24": "c0ffef",
    "callsign": "TEST202",
-   "text": "TEST202 FL350 -> FL370 proposé (RHi 106 % -> 92 %). +22 kg. Confiance 0,62 : à valider.",
+   "text": "TEST202 FL350 -> FL370 proposed (RHi 106% -> 92%). +22 kg. Confidence 0.62: needs review.",
    "written_by": "granite"
   }
  ],
@@ -175,6 +175,7 @@
   "weather_calls": 2,
   "weather_cache_hits": 1,
   "flagged_by_physics": 2,
+  "physics_ms": 0.4,
   "jev_calls": 1,
   "jev_input_tokens": 600,
   "local_llm_calls": 1,
