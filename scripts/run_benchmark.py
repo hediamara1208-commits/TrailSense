@@ -1,4 +1,4 @@
-"""H7: ContrailWatch cascade vs an all-LLM agent on the same ~20 recorded flights.
+"""H7: TrailSense cascade vs an all-LLM agent on the same ~20 recorded flights.
 In VS Code: open this file, click Run > Run Python File in Dedicated Terminal.
 
 Needs Ollama running with Granite (scripts/setup_granite.py). Costs ~1 Jev call; the all-LLM side
@@ -18,9 +18,9 @@ if __name__ == "__main__":
     one = "--one" in sys.argv   # default: every recorded cycle with a flagged flight
     print("Running... (the all-LLM side makes one local Granite call per flight, ~7 min per cycle)")
     r = run_benchmark() if one else run_all()
-    a, c = r["all_llm"], r["contrailwatch"]
+    a, c = r["all_llm"], r["trailsense"]
     print(f"\n{r['flights']} flights from {r['cycle']}, {r['flagged_by_physics']} flagged by physics\n")
-    print(f"{'':18}{'all-LLM':>14}{'ContrailWatch':>16}")
+    print(f"{'':18}{'all-LLM':>14}{'TrailSense':>16}")
     print(f"{'model calls':18}{a['model_calls']:>14}{c['model_calls']:>16}   (Jev {c['jev_calls']}, Granite {c['granite_calls']})")
     print(f"{'time (ms)':18}{a['ms']:>14.0f}{c['ms']:>16.0f}   (physics {c['physics_ms']} ms)")
     print(f"{'local energy (Wh)':18}{a['local_wh']:>14.4f}{c['local_wh']:>16.4f}")

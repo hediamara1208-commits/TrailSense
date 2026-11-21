@@ -1,4 +1,4 @@
-# ContrailWatch architecture
+# TrailSense architecture
 
 ## In one sentence
 A frugal AI agent that helps airline dispatchers avoid climate-warming contrails: in a few milliseconds it finds the few flights concerned and proposes ±2,000 ft, using far less compute than a conventional agent (ratio measured by our benchmark).

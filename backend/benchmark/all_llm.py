@@ -8,7 +8,7 @@ Protocol:
 2. Mode A, all-LLM: send EACH aircraft + its raw weather profile to an LLM (the same local IBM Granite
    by default, so the energy comparison is like-for-like) and ask it for the whole job: is there a
    persistent contrail, what should the dispatcher do, and the advisory. Measure calls, tokens, time, Wh.
-3. Mode B, ContrailWatch: the normal pipeline on the same flights (physics -> Jev only for flagged
+3. Mode B, TrailSense: the normal pipeline on the same flights (physics -> Jev only for flagged
    flights with a beneficial option -> Granite only for the advisories).
 4. Quality: does the all-LLM agent find the contrails the physics finds, and does it pick the same action?
 Output: data/benchmark/latest.json, read by GET /api/benchmark and shown in the interface.
@@ -142,7 +142,7 @@ def run_benchmark(max_flights: int | None = None, index: int | None = None, save
         "llm": config.GRANITE_MODEL,
         "all_llm": {"model_calls": a["calls"], "input_tokens": a["input_tokens"], "output_tokens": a["output_tokens"],
                     "ms": a["ms"], "local_wh": a["wh"]},
-        "contrailwatch": cascade,
+        "trailsense": cascade,
         "ratios": {
             "model_calls": round(a["calls"] / max(cascade_calls, 1), 1),
             "time": round(a["ms"] / max(cascade_ms, 1), 1),
@@ -153,7 +153,7 @@ def run_benchmark(max_flights: int | None = None, index: int | None = None, save
             "all_llm_false_alarms": false_alarms,
             "same_action_on_flagged": f"{same_action}/{len(flagged)}",
             "all_llm_unparsed_answers": unparsed,
-            "flagged": [{"callsign": callsigns.get(i, i), "contrailwatch": decisions.get(i),
+            "flagged": [{"callsign": callsigns.get(i, i), "trailsense": decisions.get(i),
                          "all_llm": all_llm["answers"].get(i, {}).get("action"),
                          "all_llm_says_persistent": all_llm["answers"].get(i, {}).get("persistent_contrail")}
                         for i in flagged],
@@ -181,7 +181,7 @@ def run_all(max_flights: int | None = None) -> dict:
         raise RuntimeError("No recorded cycle with a flagged flight in data/replay/")
     total = lambda side, key: sum(r[side][key] for r in runs)  # noqa: E731
     a = {k: round(total("all_llm", k), 4 if k == "local_wh" else 1) for k in ("model_calls", "input_tokens", "output_tokens", "ms", "local_wh")}
-    c = {k: round(total("contrailwatch", k), 4 if k == "local_wh" else 1)
+    c = {k: round(total("trailsense", k), 4 if k == "local_wh" else 1)
          for k in ("model_calls", "jev_calls", "jev_input_tokens", "granite_calls", "claude_calls", "physics_ms", "ms", "local_wh")}
     a["model_calls"], c["model_calls"] = int(a["model_calls"]), int(c["model_calls"])
     frac = lambda key: [int(x) for x in key.split("/")]  # noqa: E731
@@ -192,7 +192,7 @@ def run_all(max_flights: int | None = None) -> dict:
         "flights": sum(r["flights"] for r in runs),
         "flagged_by_physics": sum(r["flagged_by_physics"] for r in runs),
         "llm": runs[0]["llm"],
-        "all_llm": a, "contrailwatch": c,
+        "all_llm": a, "trailsense": c,
         "ratios": {"model_calls": round(a["model_calls"] / max(c["model_calls"], 1), 1),
                    "time": round(a["ms"] / max(c["ms"], 1), 1),
                    "local_energy": round(a["local_wh"] / c["local_wh"], 1) if c["local_wh"] else None},

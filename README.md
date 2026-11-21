@@ -1,4 +1,4 @@
-# ContrailWatch
+# TrailSense
 
 **A frugal AI agent that helps airline dispatchers avoid climate-warming contrails.**
 McGill CodeJam 16 (Nov 20-22, 2026) · target track: **Agent Solution** · Hedi Amara & Dawud
@@ -17,7 +17,7 @@ Real aircraft (OpenSky) and real weather (GFS) recorded over Eastern Canada duri
 - **Doing that with a big LLM on every flight is slow, expensive and unreliable.** Our benchmark below shows it.
 
 ## What it does
-Sophie is a dispatcher. Every cycle, ContrailWatch scans every aircraft in cruise over her region and only bothers her when it matters:
+Sophie is a dispatcher. Every cycle, TrailSense scans every aircraft in cruise over her region and only bothers her when it matters:
 
 1. **Physics finds the few flights that will leave a persistent contrail** (free, a few milliseconds for 40 aircraft).
 2. **Jev decides** climb, descend or keep level, with a calibrated confidence.
@@ -48,11 +48,11 @@ flowchart LR
 
 ## Results
 
-### Benchmark: ContrailWatch vs an all-LLM agent, same flights, same data
+### Benchmark: TrailSense vs an all-LLM agent, same flights, same data
 The all-LLM agent gets each aircraft and its weather profile and does everything itself (one local Granite call per aircraft). Measured on a laptop, `scripts/run_benchmark.py`, full output in [`data/benchmark/latest.json`](data/benchmark/latest.json).
 
 <!-- BENCHMARK-TABLE -->
-| 3 recorded cycles, 60 flights, 3 flagged | All-LLM agent | ContrailWatch | |
+| 3 recorded cycles, 60 flights, 3 flagged | All-LLM agent | TrailSense | |
 |---|---|---|---|
 | Model calls | 60 | 6 (3 Jev + 3 Granite) | **10× fewer** |
 | Time | 23 min 23 s | 52 s | **27× faster** |
@@ -62,7 +62,7 @@ The all-LLM agent gets each aircraft and its weather profile and does everything
 | Right action on the flagged flights | 2/3 (UPS214: climb, the option with no benefit) | 3/3 | |
 <!-- /BENCHMARK-TABLE -->
 
-Asked to judge contrails by itself, the all-LLM agent said "persistent contrail" for **every single flight**: it would have sent the dispatcher 57 needless, fuel-burning deviations, and it picked the wrong direction for UPS214. ContrailWatch's time includes loading the local model once. **Physics first is cheaper *and* more reliable.**
+Asked to judge contrails by itself, the all-LLM agent said "persistent contrail" for **every single flight**: it would have sent the dispatcher 57 needless, fuel-burning deviations, and it picked the wrong direction for UPS214. TrailSense's time includes loading the local model once. **Physics first is cheaper *and* more reliable.**
 
 ### Jev on the real flagged flights
 | Flight (night, Eastern Canada) | Jev's decision | Per-option probability | Route |
@@ -80,7 +80,7 @@ Where two options are almost equally good (AAL278: +3,737 vs +3,733 kg CO₂e) a
 - GFS caps humidity at 100% and represents ice supersaturation poorly; our 95% threshold is a tuning choice. That is exactly why the confidence and the human-review route exist.
 - Aircraft type, winds and real traffic are not modelled; the CO₂e factor per km has a ×3 uncertainty range ([`docs/hypotheses.md`](docs/hypotheses.md)).
 - The benchmark is a small sample (one flagged flight per cycle) with a small local model (3B parameters). Local Wh = 25 W × generation time (estimate). Jev runs on TypeSafe's servers: we report its calls and tokens, not its energy.
-- ContrailWatch never moves an aircraft: it advises the dispatcher, who requests the level from ATC as usual.
+- TrailSense never moves an aircraft: it advises the dispatcher, who requests the level from ATC as usual.
 
 ## Run it
 ```bash

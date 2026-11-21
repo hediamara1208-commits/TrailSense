@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.INFO)
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "data" / "fixtures" / "sample_snapshot.json"
 
-app = FastAPI(title="ContrailWatch")
+app = FastAPI(title="TrailSense")
 # Lets the Lovable preview (and a Vite dev server) read the API on this laptop. Read-only GET API, no secrets.
 app.add_middleware(CORSMiddleware, allow_methods=["GET"], allow_headers=["*"],
                    allow_origin_regex=r"https://([a-z0-9-]+\.)*(lovable\.app|lovable\.dev|lovableproject\.com)|http://localhost:\d+")
