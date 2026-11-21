@@ -61,6 +61,11 @@ JEV_MODEL = "jev-preview"
 # Plan B: if Jev is unavailable (API down, early access blocked), switch to the hard-coded rule
 USE_JEV = True
 
+# Frugality: send all flagged flights of a cycle to Jev in ONE request (questions prefixed by icao24),
+# by groups of at most JEV_MAX_GROUP. If a grouped call fails, jev.decide() retries one flight per call.
+JEV_GROUPED = True
+JEV_MAX_GROUP = 8
+
 
 # ---------- Physics (Dawud): every tunable assumption, documented in docs/hypotheses.md ----------
 # Persistence: RHi >= threshold. GFS caps at 100 % and underestimates supersaturation -> 95 % (tuning choice).

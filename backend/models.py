@@ -99,6 +99,7 @@ class Decision:
     operational_feasibility: float    # Score normalised 0-1
     route: Route
     decided_by: str = "jev"           # "jev", "rule" (plan B, fallback.py) or "physics" (no beneficial option)
+    probabilities: dict[str, float] = field(default_factory=dict)  # Jev's probability per action (empty for rule/physics)
 
 
 @dataclass
