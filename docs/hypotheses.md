@@ -26,10 +26,15 @@ Toutes les valeurs sont réglables dans `backend/config.py`. Ce qui est **à vé
 - **3,16 kg de CO₂ par kg** de kérosène.
 
 ## Réchauffement évité ⚠️ (l'estimation la plus incertaine)
-- Réchauffement d'un contrail persistant : **100 kg CO2e/km la nuit, 40 kg CO2e/km le jour** (horizon 100 ans), avec une fourchette ×/÷ 3 affichée.
-- Nuit = soleil sous l'horizon : le contrail ne fait que piéger la chaleur infrarouge. Le jour, il réfléchit aussi du soleil, ce qui compense en partie.
-- Ces facteurs sont des ordres de grandeur, pas une mesure. **À sourcer ou calibrer** (par ex. sur des sorties CoCiP de pycontrails) avant d'être cités comme chiffres.
-- Robustesse : pour un avion à 500 kt, 150 km de zone sursaturée = 18 min, soit ~13 kg de carburant en plus (~42 kg CO₂) contre ~15 t CO2e évitées la nuit. Le bilan reste largement positif même avec un facteur divisé par 100, ce qui est cohérent avec Teoh et al. (2020) : ~59 % de forçage des contrails évité pour ~0,014 % de carburant en plus.
+- Valeurs retenues : **50 kg CO2e/km la nuit, 15 kg CO2e/km le jour** (horizon 100 ans), fourchette ÷3 à ×3 affichée.
+- D'où ça vient (Borella et al., *ACP* 24, 9401-9417, 2024, https://acp.copernicus.org/articles/24/9401/2024/) :
+  - énergie de forçage (EF) moyenne des vols formant des contrails : **~9,6 × 10¹⁰ J par km** (médiane 2,9 × 10¹⁰, 90e centile 2,8 × 10¹¹) ;
+  - efficacité climatique des contrails : **0,37** ;
+  - AGWP100 du CO₂ ≈ 9,2 × 10⁻¹⁴ W m⁻² an kg⁻¹ (GIEC AR5), soit ≈ 1,48 × 10⁹ J par kg de CO₂ sur 100 ans.
+  - → 9,6 × 10¹⁰ × 0,37 / 1,48 × 10⁹ ≈ **24 kg CO2e par km** en moyenne jour + nuit. La nuit pèse plus (pas de refroidissement solaire), le jour moins, d'où 50 / 15.
+  - ⚠️ Les valeurs d'EF par km viennent d'un résumé de l'article : **à vérifier dans le PDF** (Sect. 3 et tableaux S1-S2) avant de les citer.
+- Le choix de la métrique (GWP100, GWP20, ATR…) change fortement le résultat : c'est le sujet même de Borella et al. On utilise l'horizon 100 ans, comme pour le CO₂.
+- Robustesse : pour un avion à 500 kt, 150 km de zone sursaturée = 18 min, soit ~13 kg de carburant en plus (~42 kg CO₂) contre ~7,5 t CO2e évitées la nuit. Le bilan reste positif même avec un facteur divisé par 100, ce qui est cohérent avec Teoh et al. (2020) : ~59 % du forçage des contrails évité pour ~0,014 % de carburant en plus.
 
 ## Ce qu'on ne modélise pas
 Le trafic réel et l'accord du contrôle aérien (l'outil est une aide à la décision pour le régulateur), le vent, le type d'avion, l'étendue réelle de la zone sursaturée, et l'effet radiatif détaillé (CoCiP).

@@ -75,7 +75,9 @@ CRUISE_FUEL_FLOW_KG_H = 3000.0
 # Surconsommation hors niveau optimal pendant la déviation (ordre de grandeur des essais publiés : ~2 %)
 FUEL_PENALTY_PCT = {"climb": 1.5, "descend": 2.0}
 # Réchauffement d'un contrail persistant, en kg CO2e (horizon 100 ans) par km de contrail.
-# ESTIMATION LA PLUS INCERTAINE DU PROJET : ordre de grandeur, fourchette x0,3 à x3 affichée.
+# ESTIMATION LA PLUS INCERTAINE DU PROJET, fourchette ÷3 à ×3 affichée. Dérivée de Borella et al. (ACP 2024) :
+# énergie de forçage moyenne ~9,6e10 J par km (vols formant des contrails), efficacité 0,37,
+# AGWP100 du CO2 ≈ 1,48e9 J/kg -> ~24 kg CO2e/km en moyenne jour+nuit. Voir docs/hypotheses.md.
 # La nuit compte plus : le contrail piège la chaleur sans réfléchir le soleil.
-CONTRAIL_CO2E_KG_PER_KM = {"night": 100.0, "day": 40.0}
+CONTRAIL_CO2E_KG_PER_KM = {"night": 50.0, "day": 15.0}
 CONTRAIL_UNCERTAINTY_FACTOR = 3.0
