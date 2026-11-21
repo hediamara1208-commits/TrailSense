@@ -2,7 +2,7 @@
 
 **Principle:** each of us owns our modules, but **each of us must be able to explain the other's** to the jury (the Q&A judges the whole team). At every sync point, we walk each other through what we did in 5 minutes.
 
-*Version 4 (Sat 01:35): repo translated to English, PR #1 merged, progress updated. Version 3 (Fri 23:05): local Granite tier and hackathon tools (Claude Builder Club, 1Password). Version 2 (Fri 22:45): roles swapped, benchmark moved to the LLM side, no-Jev fallback, recording rate limits, shared pitch, repo public by 11:00.*
+*Version 5 (Sat 01:50): Dawud tasks D7-D10 added. Version 4 (Sat 01:35): repo translated to English, PR #1 merged, progress updated. Version 3 (Fri 23:05): local Granite tier and hackathon tools (Claude Builder Club, 1Password). Version 2 (Fri 22:45): roles swapped, benchmark moved to the LLM side, no-Jev fallback, recording rate limits, shared pitch, repo public by 11:00.*
 
 ## Dawud: "the science and the data" (critical path)
 **Goal:** real aircraft, real weather, a correct and defensible contrail risk. This is the riskiest part: Dawud focuses on it and nothing else.
@@ -12,7 +12,11 @@
 - [x] **D3 · Fri night / Sat morning** `sources/weather.py`: Open-Meteo profiles + cache. Humidity convention checked (`RH_CONVENTION = "ice"`, threshold `RHI_THRESHOLD = 95`).
 - [x] **D4 · Sat morning** `physics/contrails.py`: RHi, Schmidt-Appleman, interpolation, day/night, `assess()` + `tests/test_physics.py` (14 tests).
 - [x] **D5 · Sat afternoon** `physics/fuel.py` + `physics/cycle.py` (`assess_cycle()`) + ISSR length along the track + `docs/hypotheses.md` (Borella et al. 2024: 50 kg CO2e/km at night, 15 by day).
-- [ ] **D6 · Sat evening** Pitch, science part: the physics slide and the jury's physics questions.
+- [ ] **D6 · Sat evening** Pitch, science part: the physics slide and the jury's physics questions. *Draft in `docs/pitch_physics.md` (30 s script + 5 Q&A + backups); to rehearse.*
+- [x] **D7 · Sat 01:40** Multi-region recording (PR #2): `--region north_atlantic|europe|us_northeast|east_canada`, one terminal per region, `--once` snapshots, `scan [region]`. Weather budgets keep all regions under the Open-Meteo free tier.
+- [ ] **D8 · Sat night / morning** Pick the demo cycles: `python -m backend.physics.scan [region]`, commit the 5-10 best night cycles (most flagged flights) to `data/replay/`. Re-scan in the morning and swap if better ones appear.
+- [ ] **D9 · Sat afternoon** Integration with Hedi: help plug `assess_cycle()` into `pipeline.py` (H6), then sanity-check the agent's climb/descend decisions on 2-3 flagged flights.
+- [ ] **D10 · Sat evening** Fact-check every number in the README and pitch against its source (35 % share, −54 %, −11.6 %, Borella, Teoh).
 
 **Fallback rule at noon Saturday:** if the physics isn't ready on real data, keep **Schmidt-Appleman + RHi only, without fuel**, and add the fuel at 18:00. *(No longer needed: physics delivered.)*
 

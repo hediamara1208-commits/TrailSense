@@ -1,6 +1,6 @@
 """[DAWUD] Run the physics over the whole overnight recording.
 
-    python -m backend.physics.scan
+    python -m backend.physics.scan [region]     (default: east_canada)
 
 Prints, for each cycle in data/replay/: aircraft, flagged flights, night/day.
 Then the humidity distribution below -40 °C, to settle RH_CONVENTION:
@@ -24,8 +24,8 @@ def to_profile(d: dict) -> WeatherProfile:
     return WeatherProfile(d["lat"], d["lon"], d["valid_time"], [LevelWeather(**lv) for lv in d["levels"]])
 
 
-def main() -> None:
-    files = replay_files()
+def main(region: str = "east_canada") -> None:
+    files = replay_files(region)
     if not files:
         print("No file in data/replay/")
         return
@@ -50,7 +50,8 @@ def main() -> None:
                    for r in assessments if r.flagged]
         ts = data["timestamp"]
         hhmm = f"{ts // 3600 % 24:02d}:{ts // 60 % 60:02d}"
-        night = is_night(46.5, -72.0, ts)
+        lat0, lon0 = (aircraft[0].lat, aircraft[0].lon) if aircraft else (46.5, -72.0)
+        night = is_night(lat0, lon0, ts)
         print(f"{f.stem:>12} {hhmm:>9} {len(data['aircraft']):>8} {len(flagged):>7}  {'yes' if night else 'no'}"
               + (f"   {', '.join(flagged[:4])}" if flagged else ""))
         best.append((len(flagged), f.stem))
@@ -63,4 +64,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main(sys.argv[1] if len(sys.argv) > 1 else "east_canada")
