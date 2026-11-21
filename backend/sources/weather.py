@@ -101,6 +101,18 @@ def get_profiles_batch(points: list[tuple[float, float]], timestamp: int) -> dic
         chunk = missing[i:i + MAX_COORDS_PER_CALL]
         try:
             fetched = _fetch(chunk, hour)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code != 429:
+                log.error("Open-Meteo: %s", e)
+                continue
+            # Per-minute limit hit by a large grid: wait once and retry this chunk.
+            log.warning("Open-Meteo 429 (per-minute limit), retrying this chunk in 60 s")
+            time.sleep(60)
+            try:
+                fetched = _fetch(chunk, hour)
+            except httpx.HTTPError as e2:
+                log.error("Open-Meteo: %s", e2)
+                continue
         except httpx.HTTPError as e:
             log.error("Open-Meteo: %s", e)
             continue
