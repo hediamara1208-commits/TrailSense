@@ -1,54 +1,86 @@
-"""Paramètres globaux. Un seul endroit pour les régler pendant la démo."""
+"""Global settings. One place to tune everything during the demo."""
 
-# Zone surveillée : boîte autour du Québec / sud de l'Ontario (à ajuster)
-BBOX = {"lamin": 44.0, "lamax": 50.0, "lomin": -80.0, "lomax": -64.0}
+# Monitored area: Quebec, Gulf of St. Lawrence, Newfoundland, Labrador (transatlantic corridor).
+# Widened east then north on 2026-11-21: Quebec alone was too dry on the first night;
+# ice-supersaturated layers were mostly around 50-52°N.
+# ~288 square degrees = 3 OpenSky credits per call: ~860 credits/day at one call every 5 min.
+BBOX = {"lamin": 44.0, "lamax": 56.0, "lomin": -76.0, "lomax": -52.0}
 
-# Niveaux de pression GFS disponibles sur Open-Meteo autour de l'altitude de croisière
-# 200 hPa ≈ FL385 : on ajoute 175 (≈ FL420) et 150 pour couvrir FL390-410 et la montée.
-# À vérifier par un appel test sur Open-Meteo GFS (la doc liste 300, 275, 250, 225, 200, 175, 150).
-PRESSURE_LEVELS_HPA = [300, 275, 250, 225, 200, 175, 150]
+# GFS pressure levels on Open-Meteo around cruise altitude (all verified to exist).
+# 350 hPa (≈ FL265) brackets FL290-300; 175 (≈ FL420) and 150 cover FL390-410 and climbs.
+PRESSURE_LEVELS_HPA = [350, 300, 275, 250, 225, 200, 175, 150]
 
-# Convention de l'humidité GFS à ces températures : "water" ou "ice". À fixer après vérification
-# (D3). Si "ice", physics ne refait PAS la conversion eau -> glace.
-RH_CONVENTION = "unknown"
+# GFS humidity convention at these temperatures: "water" or "ice".
+# Confirmed "ice" (capped at 100 %): on the overnight recording, values pile up at 80-100 % and never
+# exceed 100. Exactly 100 % at -49.5 °C would mean ~155 % over ice if it were over water (unphysical).
+# With "ice", physics does NOT convert water -> ice again.
+RH_CONVENTION = "ice"
 
-# On n'analyse que les avions en croisière (FL290-FL410, zone RVSM)
+# Only cruising aircraft are analysed (FL290-FL410, RVSM airspace)
 MIN_FLIGHT_LEVEL = 290
 MAX_FLIGHT_LEVEL = 410
+# Climbing/descending aircraft excluded: |vertical_rate| > 2.5 m/s (~500 ft/min) = not in cruise
+MAX_VERTICAL_RATE_MS = 2.5
 
-# Décalage proposé : 2 000 ft = 20 FL, garde la parité est/ouest
+# Proposed shift: 2,000 ft = 20 FL, keeps the east/west (odd/even) level parity
 LEVEL_STEP = 20
 
-# Cache météo : taille de cellule (degrés) et durée de validité (secondes)
+# Weather cache: cell size (degrees) and time to live (seconds)
 WEATHER_CELL_DEG = 0.5
 WEATHER_TTL_S = 3600
 
-# Seuil d'autonomie par défaut (curseur dans l'interface)
+# Default autonomy threshold (slider in the UI)
 DEFAULT_THRESHOLD = 0.8
 
-# Cascade de rédaction des avis : gabarit -> Granite local -> Cloud LLM
-MAX_CLOUD_LLM_ADVISORIES = 2      # seulement les plus importants
-MAX_GRANITE_ADVISORIES = 5     # avis courants, rédigés en local
-USE_GRANITE = True             # False si Ollama/Granite ne marche pas : on passe directement à gabarit/Cloud LLM
+# Advisory writing cascade: template -> local Granite -> Cloud LLM
+MAX_CLOUD_LLM_ADVISORIES = 2      # only the most important ones
+MAX_GRANITE_ADVISORIES = 5     # routine advisories, written locally
+USE_GRANITE = True             # False if Ollama/Granite does not work: go straight to template/Cloud LLM
 OLLAMA_URL = "http://localhost:11434"
-GRANITE_MODEL = "granite4:micro"   # nom exact à vérifier avec `ollama list` après `ollama pull`
-CLOUD_LLM_MODEL = "cloud_llm-haiku-5-5"  # petit modèle, assez pour rédiger un avis court
+GRANITE_MODEL = "granite4:micro"   # check the exact name with `ollama list` after `ollama pull`
+CLOUD_LLM_MODEL = "cloud_llm-haiku-5-5"  # small model, enough to write a short advisory
 
-# Intervalle de rafraîchissement en mode live (secondes, OpenSky anonyme = 10 s mini)
+# Live mode refresh interval (seconds; anonymous OpenSky = 10 s minimum)
 REFRESH_S = 30
 
-# Enregistrement de nuit : la boîte fait ~96 degrés carrés = 2 crédits OpenSky par appel.
-# En anonyme, un appel toutes les 30 s épuise les crédits en ~1 h 40.
-# -> créer un compte OpenSky gratuit, et une capture toutes les 2 à 5 min.
+# Night recording: one aircraft snapshot every RECORD_S (free OpenSky account required).
 RECORD_S = 300
-# Météo : une fois par heure suffit (GFS n'est mis à jour que toutes les 6 h)
-RECORD_WEATHER_INTERVAL_S = 3600
+# Weather recorded on a fixed grid covering the whole BBOX (not just the aircraft cells),
+# so every replayed aircraft has a profile. 1° -> 13 × 25 = 325 points = 4 grouped calls.
+# Open-Meteo free tier = 10,000 calls/day, weighted by points and variables (24 vars ≈ ×2.4)
+# -> ~780 "calls" per grid: one grid every 3 h ≈ 6,300/day. GFS only updates every 6 h anyway.
+RECORD_WEATHER_INTERVAL_S = 10800
+RECORD_GRID_DEG = 1.0
 
-# Benchmark tout-LLM : limité pour ne pas exploser le coût
+# All-LLM benchmark: capped to keep the cost down
 BENCHMARK_MAX_FLIGHTS = 20
 
-# Jev : nom du modèle dans le playground (renvoie "jev-1.14.0" le 20 nov.)
+# Jev: model name used in the playground (answers as "jev-1.14.0" on Nov 20)
 JEV_MODEL = "jev-preview"
 
-# Plan B : si Jev est indisponible (API en panne, accès anticipé bloqué), on bascule sur la règle codée
+# Plan B: if Jev is unavailable (API down, early access blocked), switch to the hard-coded rule
 USE_JEV = True
+
+
+# ---------- Physics (Dawud): every tunable assumption, documented in docs/hypotheses.md ----------
+# Persistence: RHi >= threshold. GFS caps at 100 % and underestimates supersaturation -> 95 % (tuning choice).
+RHI_THRESHOLD = 95.0
+# Overall propulsive efficiency for the Schmidt-Appleman criterion (modern engines ~0.3-0.4)
+SAC_ETA = 0.35
+# Flight levels allowed for a ±2,000 ft option
+OPTION_MIN_FL = 280
+OPTION_MAX_FL = 430
+# Fallback length of an ice-supersaturated region when no weather grid is available
+# (Gierens & Spichtinger 2000: ~150 km on average along flight tracks)
+ISSR_TYPICAL_KM = 150.0
+# Generic cruise fuel flow (aircraft type unknown in OpenSky): mix of narrow-body and wide-body
+CRUISE_FUEL_FLOW_KG_H = 3000.0
+# Extra fuel burn off the optimal level during the deviation (published trials: ~2 %)
+FUEL_PENALTY_PCT = {"climb": 1.5, "descend": 2.0}
+# Warming of a persistent contrail, in kg CO2e (100-year horizon) per km of contrail.
+# MOST UNCERTAIN ESTIMATE OF THE PROJECT, shown with a ÷3 to ×3 range. Derived from Borella et al. (ACP 2024):
+# mean energy forcing ~9.6e10 J per flown km (contrail-forming flights), efficacy 0.37,
+# CO2 AGWP100 ≈ 1.48e9 J/kg -> ~24 kg CO2e/km on average, day and night. See docs/hypotheses.md.
+# Night weighs more: the contrail traps heat without reflecting sunlight.
+CONTRAIL_CO2E_KG_PER_KM = {"night": 50.0, "day": 15.0}
+CONTRAIL_UNCERTAINTY_FACTOR = 3.0

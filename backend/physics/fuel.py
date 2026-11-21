@@ -1,17 +1,30 @@
-"""[DAWUD] Coût carburant et CO₂ d'un changement de niveau.
+"""[DAWUD] Fuel cost, CO₂, and avoided warming of a level change.
 
-Hypothèses simples, à documenter dans docs/hypotheses.md :
-- Pénalité ≈ quelques % de la consommation de croisière sur la portion déviée
-  (ordre de grandeur des essais publiés : ~2 % sur les vols concernés).
-- 3,16 kg de CO₂ par kg de kérosène brûlé.
+Assumptions (all tunable in config.py, sourced in docs/hypotheses.md):
+- Aircraft type unknown (OpenSky does not provide it) -> generic cruise fuel flow.
+- Penalty = a few % of fuel burn during the deviation (~2 % in published trials).
+- 3.16 kg of CO₂ per kg of kerosene burned.
+- Warming of a persistent contrail: CO2e factor per km, higher at night. This is
+  the most uncertain estimate: we show a range (÷/× CONTRAIL_UNCERTAINTY_FACTOR).
 """
+from __future__ import annotations
+
+from backend import config
 
 CO2_PER_KG_FUEL = 3.16
+KT_TO_KMH = 1.852
+
+
+def minutes_in_issr(speed_kt: float) -> float:
+    """Time spent in the supersaturated region: typical region length / ground speed."""
+    kmh = max(speed_kt, 1.0) * KT_TO_KMH
+    return config.ISSR_TYPICAL_KM / kmh * 60.0
 
 
 def fuel_penalty_kg(aircraft_type: str | None, minutes_deviated: float, direction: str) -> float:
-    """Carburant supplémentaire estimé pour monter ou descendre de 2 000 ft pendant X minutes."""
-    raise NotImplementedError
+    """Extra fuel to fly 2,000 ft higher or lower for X minutes."""
+    pct = config.FUEL_PENALTY_PCT.get(direction, 2.0) / 100.0
+    return config.CRUISE_FUEL_FLOW_KG_H * minutes_deviated / 60.0 * pct
 
 
 def co2_kg(fuel_kg: float) -> float:
@@ -19,17 +32,17 @@ def co2_kg(fuel_kg: float) -> float:
 
 
 def warming_avoided_co2e_kg(minutes_in_issr: float, speed_kt: float, is_night: bool) -> float:
-    """Réchauffement évité en CO2e si l'avion sort de la zone sursaturée.
+    """Avoided warming (kg CO2e) = avoided contrail length × day/night factor."""
+    km = minutes_in_issr / 60.0 * speed_kt * KT_TO_KMH
+    return km * config.CONTRAIL_CO2E_KG_PER_KM["night" if is_night else "day"]
 
-    Hypothèse à sourcer et afficher clairement (docs/hypotheses.md) :
-    longueur de contrail évitée (km) = minutes_in_issr * vitesse
-    × un facteur CO2e par km de contrail persistant (ordre de grandeur tiré de la littérature, CoCiP),
-    plus élevé la nuit (le contrail ne fait que piéger la chaleur).
-    C'est l'estimation la plus incertaine du projet : la présenter avec une fourchette.
-    """
-    raise NotImplementedError
+
+def warming_range_co2e_kg(central: float) -> tuple[float, float]:
+    """Low / high range to show next to the central value."""
+    f = config.CONTRAIL_UNCERTAINTY_FACTOR
+    return central / f, central * f
 
 
 def net_benefit_co2e_kg(warming_avoided: float, fuel_penalty: float) -> float:
-    """Bilan net d'une option = réchauffement évité - CO2 du carburant supplémentaire."""
+    """Net benefit of an option = avoided warming - CO2 of the extra fuel."""
     return warming_avoided - co2_kg(fuel_penalty)
