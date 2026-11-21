@@ -102,11 +102,12 @@ class Decision:
 
 @dataclass
 class Advisory:
-    """Message pour la régulatrice de vol (LLM pour les 2-3 vols clés, sinon gabarit)."""
+    """Message pour la régulatrice de vol. Cascade de rédaction, du moins cher au plus cher :
+    gabarit (gratuit) -> Granite local (petit modèle IBM via Ollama) -> Claude (1-2 avis clés)."""
     icao24: str
     callsign: str
     text: str
-    written_by: str          # "llm" ou "template"
+    written_by: str          # "template", "granite" ou "claude"
 
 
 @dataclass
@@ -118,7 +119,9 @@ class Receipt:
     flagged_by_physics: int = 0
     jev_calls: int = 0
     jev_input_tokens: int = 0
-    llm_calls: int = 0
+    local_llm_calls: int = 0      # Granite sur le portable (Ollama)
+    local_llm_energy_wh: float = 0.0  # estimation : puissance du portable × durée de l'appel
+    llm_calls: int = 0            # Claude (cloud)
     llm_energy_wh: float = 0.0    # via EcoLogits
     llm_gco2e: float = 0.0
     cost_usd: float = 0.0
