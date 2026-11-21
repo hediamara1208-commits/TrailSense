@@ -91,7 +91,7 @@ def load_replay(index: int) -> dict:
 
 
 def run_forever() -> None:
-    """Boucle d'enregistrement : avions toutes les RECORD_S, météo au plus une fois par heure."""
+    """Boucle d'enregistrement : avions toutes les RECORD_S, météo au plus une fois par RECORD_WEATHER_INTERVAL_S."""
     global _last_weather_hour
     log.info("Enregistrement dans %s (avions / %d s, météo / %d s). Ctrl+C pour arrêter.",
              REPLAY_DIR, config.RECORD_S, config.RECORD_WEATHER_INTERVAL_S)
