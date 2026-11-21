@@ -17,6 +17,11 @@ A frugal AI agent that helps airline dispatchers avoid climate-warming contrails
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md), [`TASKS.md`](TASKS.md) and [`docs/hypotheses.md`](docs/hypotheses.md).
 
+## Live demo
+**https://pixel-perfect-screenshot-muse-09.lovable.app/**: real recorded cycles (OpenSky aircraft + GFS weather, recorded during CodeJam) with real Jev decisions. Frontend built with Lovable.
+
+![QR code to the live demo](docs/demo-qr.png)
+
 ## Getting started
 ```bash
 pip install -r requirements.txt     # Windows: run scripts/setup_env.py
