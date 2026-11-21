@@ -32,7 +32,7 @@ so we use a 95 % threshold and show a confidence level instead of a yes/no. Beca
 kilograms of fuel, a false alarm is cheap, while a missed contrail is expensive.
 
 **2. "What about air traffic control?"**
-ContrailWatch doesn't move aircraft. It's a decision aid for the airline dispatcher, who requests the new level from ATC
+TrailSense doesn't move aircraft. It's a decision aid for the airline dispatcher, who requests the new level from ATC
 like any other level change. A ±2,000 ft shift keeps the east/west level parity of RVSM airspace, so the proposed level is one
 the flight could actually be cleared to.
 
