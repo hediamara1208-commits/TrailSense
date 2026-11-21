@@ -121,3 +121,21 @@ confidence is lower and a human reviews the decision.
 **"Why do some flagged flights get no recommendation?"**
 When the levels above and below are also supersaturated, moving only burns fuel without avoiding the contrail.
 The code then decides "maintain" on its own, without even calling Jev: in the Europe cycles, 4 of 14 at night and 5 of 22 by day.
+
+## GFS vs ECMWF (Sat afternoon, `python -m backend.physics.compare_models europe 1`)
+Europe cycle 1795243469 (06:44 UTC), 9 flagged aircraft + 77 grid points, 344 values below −40 °C:
+
+| Model | ≥ 95 % | = 100 % | > 100 % | max |
+|---|---|---|---|---|
+| GFS | 21 | 15 | 0 | 100 % |
+| ECMWF IFS | 22 | 19 | 0 | 100 % |
+
+- **Both public feeds cap RH at 100 %**, so switching model does not reveal how supersaturated the air is.
+- Same overall humidity (same convention: RH over ice), but **they disagree on where**: at the 9 aircraft GFS flags,
+  ECMWF gives 51-93 %. Ice-supersaturated layers are thin and models place them differently.
+
+**"Did you try another weather model?"**
+Yes, ECMWF, the best global model. It is capped at 100 % too, and at the exact aircraft positions it often disagrees with GFS.
+That's the honest state of the art: humidity at cruise altitude is the weakest link of every contrail forecast. It's why the agent
+gives low forecast-reliability scores and sends these cases to a human. The next step is to require both models to agree
+before acting automatically, which turns model disagreement into a confidence signal.
