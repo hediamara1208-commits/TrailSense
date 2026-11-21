@@ -2,7 +2,8 @@
 In VS Code: open this file, click Run > Run Python File in Dedicated Terminal.
 
 Needs Ollama running with Granite (scripts/setup_granite.py). Costs ~1 Jev call; the all-LLM side
-runs ~20 local Granite calls (a few minutes: that is the point). Writes data/benchmark/latest.json.
+runs ~20 local Granite calls per cycle, on EVERY recorded cycle with a flagged flight (~7 min each;
+use --one for the first cycle only). Writes data/benchmark/latest.json.
 """
 import json
 import sys
@@ -11,11 +12,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))  # so that "backend" can be imported
 
-from backend.benchmark.all_llm import OUT, run_benchmark  # noqa: E402
+from backend.benchmark.all_llm import OUT, run_all, run_benchmark  # noqa: E402
 
 if __name__ == "__main__":
-    print("Running... (the all-LLM side makes one local Granite call per flight)")
-    r = run_benchmark()
+    one = "--one" in sys.argv   # default: every recorded cycle with a flagged flight
+    print("Running... (the all-LLM side makes one local Granite call per flight, ~7 min per cycle)")
+    r = run_benchmark() if one else run_all()
     a, c = r["all_llm"], r["contrailwatch"]
     print(f"\n{r['flights']} flights from {r['cycle']}, {r['flagged_by_physics']} flagged by physics\n")
     print(f"{'':18}{'all-LLM':>14}{'ContrailWatch':>16}")
