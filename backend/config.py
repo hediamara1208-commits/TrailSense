@@ -55,6 +55,9 @@ RECORD_GRID_DEG = 1.0
 # All-LLM benchmark: capped to keep the cost down
 BENCHMARK_MAX_FLIGHTS = 20
 
+# Jev: model name used in the playground (answers as "jev-1.14.0" on Nov 20)
+JEV_MODEL = "jev-preview"
+
 # Plan B: if Jev is unavailable (API down, early access blocked), switch to the hard-coded rule
 USE_JEV = True
 

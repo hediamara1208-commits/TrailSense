@@ -1,21 +1,36 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ContrailWatch</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- [HEDI] Interface. Zones prévues :
-       - #map        : carte Leaflet, avions colorés (gris = OK, orange = signalé, rouge = auto, violet = revue humaine)
-       - #panel      : fiche du vol cliqué (3 niveaux, pénalité carburant, décision Jev + confiance, avis)
-       - #controls   : bascule Replay/Live + curseur "seuil d'autonomie"
-       - #receipt    : reçu de calcul + bouton "comparer au tout-LLM" (GET /api/benchmark)
-  -->
-  <div id="controls"></div>
-  <div id="map"></div>
-  <aside id="panel"></aside>
+  <!-- [HEDI] Layout:
+       #controls : title, data mode, autonomy threshold slider, legend
+       #map      : Leaflet map, one colored dot per plane
+       #panel    : details of the clicked flight
+       #receipt  : compute receipt (frugality proof for the jury) -->
+  <header id="controls">
+    <strong>ContrailWatch</strong>
+    <span id="mode"></span>
+    <label>Autonomy threshold
+      <input type="range" id="threshold" min="0" max="1" step="0.05" value="0.8">
+      <span id="threshold-value">0.80</span>
+    </label>
+    <span class="legend">
+      <i class="dot grey"></i>no risk
+      <i class="dot orange"></i>flagged
+      <i class="dot green"></i>auto advisory
+      <i class="dot purple"></i>human review
+    </span>
+  </header>
+  <main>
+    <div id="map"></div>
+    <aside id="panel"><p class="hint">Click a plane to see its details.</p></aside>
+  </main>
   <footer id="receipt"></footer>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>

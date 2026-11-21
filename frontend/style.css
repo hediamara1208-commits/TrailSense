@@ -1,3 +1,17 @@
-/* [HEDI] Mise en page : carte à gauche, fiche du vol à droite, reçu en bas. */
-body { margin: 0; font-family: system-ui, sans-serif; }
-#map { height: 80vh; }
+/* [HEDI] Layout: controls on top, map left, flight details right, receipt at the bottom. */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #111418; color: #e8eaed; height: 100vh; display: flex; flex-direction: column; }
+#controls { display: flex; gap: 24px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #2a2f36; flex-wrap: wrap; }
+#controls label { display: flex; gap: 8px; align-items: center; }
+.legend { display: flex; gap: 6px; align-items: center; font-size: 13px; color: #aab; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 8px; }
+.grey { background: #9aa0a6; } .orange { background: #f29d38; } .green { background: #2e9e6b; } .purple { background: #7b5cd6; }
+main { flex: 1; display: flex; min-height: 0; }
+#map { flex: 1; }
+#panel { width: 340px; padding: 16px; overflow-y: auto; border-left: 1px solid #2a2f36; }
+#panel table { width: 100%; border-collapse: collapse; font-size: 14px; }
+#panel td, #panel th { padding: 4px; border-bottom: 1px solid #2a2f36; text-align: left; }
+.decision { padding: 8px; background: #1c2128; border-radius: 6px; }
+blockquote { margin: 12px 0; padding: 8px 12px; border-left: 3px solid #2e9e6b; background: #161b21; }
+.hint { color: #889; }
+#receipt { padding: 8px 16px; font-size: 13px; color: #aab; border-top: 1px solid #2a2f36; }

@@ -1,54 +1,54 @@
-# Répartition des tâches : Dawud et Hedi
+# Task split: Dawud and Hedi
 
-**Principe :** chacun possède ses modules, mais **chacun doit pouvoir expliquer ceux de l'autre** au jury (le Q&A juge toute l'équipe). À chaque point de synchro, on se présente mutuellement ce qu'on a fait en 5 minutes.
+**Principle:** each of us owns our modules, but **each of us must be able to explain the other's** to the jury (the Q&A judges the whole team). At every sync point, we walk each other through what we did in 5 minutes.
 
-*Version 3 (ven 23 h 05) : ajout de l'étage Granite local et des outils du hackathon (Cloud LLM Builder Club, 1Password). Version 2 (ven 22 h 45) : rôles inversés, le benchmark rejoint la partie LLM, ajout d'un plan B sans Jev, limites d'appels pour l'enregistrement, pitch partagé, repo public à 11 h.*
+*Version 4 (Sat 01:35): repo translated to English, PR #1 merged, progress updated. Version 3 (Fri 23:05): local Granite tier and hackathon tools (Cloud LLM Builder Club, 1Password). Version 2 (Fri 22:45): roles swapped, benchmark moved to the LLM side, no-Jev fallback, recording rate limits, shared pitch, repo public by 11:00.*
 
-## Dawud : « la science et les données » (chemin critique)
-**Objectif :** des avions réels, une météo réelle, un risque de contrail correct et défendable. C'est la partie la plus risquée : Dawud s'y concentre, sans autre tâche.
+## Dawud: "the science and the data" (critical path)
+**Goal:** real aircraft, real weather, a correct and defensible contrail risk. This is the riskiest part: Dawud focuses on it and nothing else.
 
-- [ ] **D1 · Ven soir (urgent)** `sources/opensky.py` : avions en croisière au-dessus du Québec.
-- [ ] **D2 · Ven soir (urgent)** `sources/recorder.py` : lancer l'enregistrement de nuit. **Avions toutes les 2-5 min (`RECORD_S`), avec un compte OpenSky gratuit, météo toutes les heures** : ne pas épuiser les crédits OpenSky.
-- [ ] **D3 · Ven soir / sam matin** `sources/weather.py` : profil Open-Meteo + cache. Vérifier la convention de l'humidité.
-- [ ] **D4 · Sam matin** `physics/contrails.py` : RHi, critère de Schmidt-Appleman, interpolation, jour/nuit, `assess()` + `tests/test_physics.py`.
-- [ ] **D5 · Sam après-midi (après 12 h)** `physics/fuel.py` + `docs/hypotheses.md`.
-- [ ] **D6 · Sam soir** Pitch, partie scientifique : la diapositive physique et les réponses du Q&A sur la physique.
+- [x] **D1 · Fri night (urgent)** `sources/opensky.py`: cruising aircraft over the area (OAuth2, 429 handling).
+- [x] **D2 · Fri night (urgent)** `sources/recorder.py`: overnight recording. **Aircraft every 2-5 min (`RECORD_S`) with a free OpenSky account; weather on a fixed grid over the BBOX**, to stay within the OpenSky and Open-Meteo limits.
+- [x] **D3 · Fri night / Sat morning** `sources/weather.py`: Open-Meteo profiles + cache. Humidity convention checked (`RH_CONVENTION = "ice"`, threshold `RHI_THRESHOLD = 95`).
+- [x] **D4 · Sat morning** `physics/contrails.py`: RHi, Schmidt-Appleman, interpolation, day/night, `assess()` + `tests/test_physics.py` (14 tests).
+- [x] **D5 · Sat afternoon** `physics/fuel.py` + `physics/cycle.py` (`assess_cycle()`) + ISSR length along the track + `docs/hypotheses.md` (Borella et al. 2024: 50 kg CO2e/km at night, 15 by day).
+- [ ] **D6 · Sat evening** Pitch, science part: the physics slide and the jury's physics questions.
 
-**Règle de repli à 12 h samedi :** si la physique n'est pas prête sur de vraies données, on garde **critère de Schmidt-Appleman + RHi seuls, sans carburant**, et on ajoute le carburant à 18 h.
+**Fallback rule at noon Saturday:** if the physics isn't ready on real data, keep **Schmidt-Appleman + RHi only, without fuel**, and add the fuel at 18:00. *(No longer needed: physics delivered.)*
 
-## Hedi : « l'agent, les LLM et le produit »
-**Objectif :** un agent qui décide vite et bien avec Jev, n'appelle le LLM que quand ça vaut le coût, prouve sa frugalité, et une interface claire.
+## Hedi: "the agent, the LLMs and the product"
+**Goal:** an agent that decides fast and well with Jev, only calls an LLM when it's worth it, proves its frugality, and a clear interface.
 
-- [ ] **H0 · Ven soir** Demander les crédits API Cloud LLM au Cloud LLM Builder Club McGill. Créer un coffre 1Password partagé avec Dawud pour les clés (Jev, provider, OpenSky).
-- [ ] **H1 · Ven soir** Créer la clé Jev, tester les 4 questions dans le playground (console.typesafe.ai/playground) avec le vol exemple de la fixture.
-- [ ] **H2 · Ven soir** `api.py` qui renvoie la fixture + `frontend/` : carte Leaflet avec les 3 avions de l'exemple.
-- [ ] **H3 · Sam matin** `agent/jev.py` : `build_state()` + `decide()` avec le seuil. Tester l'appel groupé.
-- [ ] **H4 · Sam matin** `agent/fallback.py` : **plan B sans Jev** (règle codée en dur, même sortie que `decide()`).
-- [ ] **H5 · Sam midi** `agent/writer.py` : gabarit + Cloud LLM pour les 1-2 vols clés + EcoLogits.
-- [ ] **H5b · Sam après-midi (optionnel)** Étage **Granite local** : installer Ollama, `ollama pull` du modèle Granite, `granite_advisory()`, mesure Wh locale. **Coupure : si ça ne marche pas à 15 h samedi, `USE_GRANITE = False` et on n'y touche plus.**
-- [ ] **H6 · Sam après-midi** `agent/pipeline.py` : brancher les modules de Dawud, remplir le `Receipt`.
-- [ ] **H7 · Sam après-midi** `benchmark/all_llm.py` : cascade contre tout-LLM, **limité à ~20 vols** de l'enregistrement.
-- [ ] **H8 · Sam soir** Interface finale : fiche vol, curseur de seuil, bascule Replay/Live, reçu, bouton benchmark.
-- [ ] **H9 · Dim matin** Vidéo de secours + README de remise (GIF, instructions, sources).
+- [ ] **H0 · Fri night** Ask the McGill Cloud LLM Builder Club for Cloud LLM API credits *(DM sent to Ed, Fri 23:13, waiting)*. Create a shared 1Password vault with Dawud for the keys (Jev, provider, OpenSky).
+- [x] **H1 · Fri night** Jev key created; the 4 questions validated in the playground (TEST101: descend_2000, confidence 0.97, 16 ms; TEST202: maintain, confidence 0.14 → human review). Rule added: no option with a positive net benefit → MAINTAIN without calling Jev.
+- [x] **H2 · Fri night** `api.py` serves the fixture + `frontend/`: Leaflet map, planes colored by status, flight panel, threshold slider, receipt.
+- [ ] **H3 · Sat morning** `agent/jev.py`: `build_state()` + `decide()` with the threshold. Test the grouped call.
+- [ ] **H4 · Sat morning** `agent/fallback.py`: **plan B without Jev** (hard-coded rule, same output as `decide()`).
+- [ ] **H5 · Sat noon** `agent/writer.py`: template + Cloud LLM for the 1-2 key flights + EcoLogits.
+- [ ] **H5b · Sat afternoon (optional)** **Local Granite** tier: install Ollama, `ollama pull` the Granite model, `granite_advisory()`, local Wh measurement. **Cut-off: if it doesn't work by 15:00 Saturday, `USE_GRANITE = False` and we stop.**
+- [ ] **H6 · Sat afternoon** `agent/pipeline.py`: plug in `assess_cycle()`, fill the `Receipt` (including `physics_ms`).
+- [ ] **H7 · Sat afternoon** `benchmark/all_llm.py`: cascade vs all-LLM, **limited to ~20 flights** from the recording.
+- [ ] **H8 · Sat evening** Final interface: Replay/Live toggle, benchmark button, best demo cycles.
+- [ ] **H9 · Sun morning** Backup video + submission README (GIF, instructions, sources).
 
-## Pitch : partagé
-- **Hedi :** l'histoire (accroche, Sophie, Système 1 / Système 2), la démo, le reçu et le benchmark.
-- **Dawud :** la physique en 30 secondes, et les questions du jury sur la science.
-- Les deux répètent ensemble samedi 23 h et dimanche 9 h.
+## Pitch: shared
+- **Hedi:** the story (hook, Sophie, System 1 / System 2), the demo, the receipt and the benchmark.
+- **Dawud:** the physics in 30 seconds, and the jury's science questions.
+- Both rehearse together Saturday 23:00 and Sunday 09:00.
 
-## Points de synchro (15 min chacun)
-| Quand | Ce qui doit marcher |
+## Sync points (15 min each)
+| When | What must work |
 |---|---|
-| **Ven 23 h 30** | `models.py` validé à deux. Dawud : vrais avions en console + enregistrement lancé. Hedi : la carte affiche la fixture. |
-| **Sam 12 h** | Dawud : `assess()` sur données réelles (sinon : règle de repli ci-dessus). Hedi : Jev **et** le plan B décident sur la fixture. |
-| **Sam 18 h** | **Intégration de bout en bout** en mode Replay. Carburant ajouté si repli à midi. |
-| **Sam 23 h** | Benchmark + reçu dans l'interface. Première répétition du pitch. |
-| **Dim 9 h** | **Gel des fonctionnalités.** Seulement des corrections et la répétition. |
-| **Dim 10-11 h** | Check-in d'équipe obligatoire (CodeJam). |
-| **Dim 11 h** | Repo à jour (public), README avec GIF, dernier commit. Marge si GitHub ou la remise posent problème. |
-| **Dim 12 h** | Fin des modifications (règle CodeJam). |
+| **Fri 23:30** | `models.py` validated by both. Dawud: real aircraft in the console + recording running. Hedi: the map shows the fixture. |
+| **Sat 12:00** | Dawud: `assess()` on real data (otherwise: fallback rule above). Hedi: Jev **and** the plan B decide on the fixture. |
+| **Sat 18:00** | **End-to-end integration** in Replay mode. Fuel added if the noon fallback was used. |
+| **Sat 23:00** | Benchmark + receipt in the interface. First pitch rehearsal. |
+| **Sun 09:00** | **Feature freeze.** Only fixes and rehearsal. |
+| **Sun 10-11** | Mandatory team check-in (CodeJam). |
+| **Sun 11:00** | Repo up to date (public), README with GIF, last commit. Margin if GitHub or the submission causes trouble. |
+| **Sun 12:00** | End of all changes (CodeJam rule). |
 
-## Règles de travail
-- Une branche par personne (`dawud/...`, `hedi/...`), on fusionne dans `main` aux points de synchro.
-- Petits commits fréquents (ils prouvent qu'on a codé pendant le hackathon).
-- Jamais de clé API dans le code : tout dans `.env` ou dans 1Password (`op run --env-file=.env -- uvicorn backend.api:app`). **Le repo est public** : vérifier avant chaque push.
+## Working rules
+- One branch per person (`dawud/...`, `hedi/...`), merged into `main` at the sync points.
+- Small, frequent commits (they prove we coded during the hackathon).
+- Never put an API key in the code: everything in `.env` or in 1Password (`op run --env-file=.env -- uvicorn backend.api:app`). **The repo is public**: check before every push.
