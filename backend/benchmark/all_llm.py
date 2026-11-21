@@ -42,9 +42,19 @@ ALL_LLM_SYSTEM = (
 )
 
 
-def pick_flights(max_flights: int) -> tuple[int, dict, list[str]]:
-    """First recorded cycle with a flagged flight; keep its flagged flights + the first others."""
+def flagged_cycles() -> list[int]:
+    """Indexes of the recorded cycles that have at least one flagged flight."""
+    out = []
     for i in range(len(replay_files())):
+        _, assessments, _ = assess_cycle(load_replay(i))
+        if any(a.flagged for a in assessments):
+            out.append(i)
+    return out
+
+
+def pick_flights(max_flights: int, index: int | None = None) -> tuple[int, dict, list[str]]:
+    """A recorded cycle with a flagged flight (the first one, or `index`): its flagged flights + the first others."""
+    for i in ([index] if index is not None else range(len(replay_files()))):
         data = load_replay(i)
         aircraft, assessments, _ = assess_cycle(data)
         flagged = [a.icao24 for a in assessments if a.flagged]
@@ -101,9 +111,10 @@ def run_all_llm(data: dict) -> dict:
     return {"totals": totals, "answers": answers}
 
 
-def run_benchmark(max_flights: int | None = None) -> dict:
+def run_benchmark(max_flights: int | None = None, index: int | None = None, save: bool = True) -> dict:
+    """One cycle (the first flagged one, or `index`)."""
     max_flights = max_flights or config.BENCHMARK_MAX_FLIGHTS
-    index, data, flagged = pick_flights(max_flights)
+    index, data, flagged = pick_flights(max_flights, index)
 
     # Mode B first (the real agent), then Mode A
     t0 = time.perf_counter()
@@ -152,6 +163,48 @@ def run_benchmark(max_flights: int | None = None) -> dict:
             "Physics is the reference for persistent contrails (Schmidt-Appleman + ice supersaturation).",
             f"Local Wh = {config.LAPTOP_POWER_W} W x generation time (estimate). Jev runs remotely: calls and tokens only.",
         ],
+        "measured_at": int(time.time()),
+    }
+    if save:
+        OUT.parent.mkdir(parents=True, exist_ok=True)
+        OUT.write_text(json.dumps(result, indent=1), encoding="utf-8")
+    return result
+
+
+def run_all(max_flights: int | None = None) -> dict:
+    """Every recorded cycle with a flagged flight, then the totals (same schema as run_benchmark + per_cycle)."""
+    runs = []
+    for i in flagged_cycles():
+        print(f"  cycle {replay_files()[i].name}...", flush=True)
+        runs.append(run_benchmark(max_flights, i, save=False))
+    if not runs:
+        raise RuntimeError("No recorded cycle with a flagged flight in data/replay/")
+    total = lambda side, key: sum(r[side][key] for r in runs)  # noqa: E731
+    a = {k: round(total("all_llm", k), 4 if k == "local_wh" else 1) for k in ("model_calls", "input_tokens", "output_tokens", "ms", "local_wh")}
+    c = {k: round(total("contrailwatch", k), 4 if k == "local_wh" else 1)
+         for k in ("model_calls", "jev_calls", "jev_input_tokens", "granite_calls", "cloud_llm_calls", "physics_ms", "ms", "local_wh")}
+    a["model_calls"], c["model_calls"] = int(a["model_calls"]), int(c["model_calls"])
+    frac = lambda key: [int(x) for x in key.split("/")]  # noqa: E731
+    found = [frac(r["quality"]["contrails_found_by_all_llm"]) for r in runs]
+    same = [frac(r["quality"]["same_action_on_flagged"]) for r in runs]
+    result = {
+        "cycle": f"{len(runs)} cycles ({', '.join(r['cycle'].removesuffix('.json') for r in runs)})",
+        "flights": sum(r["flights"] for r in runs),
+        "flagged_by_physics": sum(r["flagged_by_physics"] for r in runs),
+        "llm": runs[0]["llm"],
+        "all_llm": a, "contrailwatch": c,
+        "ratios": {"model_calls": round(a["model_calls"] / max(c["model_calls"], 1), 1),
+                   "time": round(a["ms"] / max(c["ms"], 1), 1),
+                   "local_energy": round(a["local_wh"] / c["local_wh"], 1) if c["local_wh"] else None},
+        "quality": {
+            "contrails_found_by_all_llm": f"{sum(x for x, _ in found)}/{sum(y for _, y in found)}",
+            "all_llm_false_alarms": sum(r["quality"]["all_llm_false_alarms"] for r in runs),
+            "same_action_on_flagged": f"{sum(x for x, _ in same)}/{sum(y for _, y in same)}",
+            "all_llm_unparsed_answers": sum(r["quality"]["all_llm_unparsed_answers"] for r in runs),
+            "flagged": [f for r in runs for f in r["quality"]["flagged"]],
+        },
+        "notes": runs[0]["notes"],
+        "per_cycle": runs,
         "measured_at": int(time.time()),
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

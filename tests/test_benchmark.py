@@ -42,3 +42,10 @@ def test_benchmark_compares_both_agents(one_cycle):
     assert r["quality"]["contrails_found_by_all_llm"] == "1/1"
     assert r["quality"]["same_action_on_flagged"] == "1/1"
     assert all_llm.OUT.exists()
+
+
+def test_run_all_adds_up_cycles(one_cycle):
+    r = all_llm.run_all(20)
+    assert r["flights"] == 2 and len(r["per_cycle"]) == 1
+    assert r["quality"]["contrails_found_by_all_llm"] == "1/1"
+    assert r["all_llm"]["model_calls"] == 2
