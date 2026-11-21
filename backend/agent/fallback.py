@@ -10,6 +10,7 @@ Rule:
 The other three scores are rough rule-of-thumb estimates (not Jev outputs).
 In the interface, decided_by = "rule" is shown, to stay honest.
 """
+from backend.config import MIN_FORECAST_RELIABILITY
 from backend.models import Action, Decision, RiskAssessment, Route
 
 CONFIDENT_RHI = 110.0      # RHi (%) above which the layer is clearly supersaturated
@@ -18,8 +19,13 @@ EASY_FUEL_KG = 50.0        # extra fuel below which the change is considered eas
 _ACTIONS = {"climb": Action.CLIMB, "descend": Action.DESCEND}
 
 
-def route_for(confidence: float, threshold: float) -> Route:
-    """The autonomy threshold: AUTO if confident enough, otherwise Sophie reviews."""
+def route_for(confidence: float, threshold: float, forecast_reliability: float = 1.0,
+              action: str = Action.MAINTAIN) -> Route:
+    """The autonomy threshold: AUTO if confident enough, otherwise Sophie reviews.
+    Guardrail: a level change built on an unreliable weather forecast always goes to Sophie,
+    however confident the decision (Jev can be sure of the action and unsure of the forecast)."""
+    if action != Action.MAINTAIN and forecast_reliability < MIN_FORECAST_RELIABILITY:
+        return Route.HUMAN
     return Route.AUTO if confidence >= threshold else Route.HUMAN
 
 
@@ -35,14 +41,16 @@ def decide_one(a: RiskAssessment, threshold: float) -> Decision:
     clear_signal = a.current.rh_ice_pct > CONFIDENT_RHI
     confidence = 1.0 if (a.is_night and clear_signal) else 0.6
     fuel = a.fuel_penalty_kg.get(option, 0.0) if option else 0.0
+    action = _ACTIONS[option] if option else Action.MAINTAIN
+    forecast_reliability = 1.0 if clear_signal else 0.5
     return Decision(
         icao24=a.icao24,
-        action=_ACTIONS[option] if option else Action.MAINTAIN,
+        action=action,
         confidence=confidence,
         persistent_warming_prob=0.9 if a.is_night else 0.6,   # night contrails always warm
-        forecast_reliability=1.0 if clear_signal else 0.5,
+        forecast_reliability=forecast_reliability,
         operational_feasibility=1.0 if fuel < EASY_FUEL_KG else 0.5,
-        route=route_for(confidence, threshold),
+        route=route_for(confidence, threshold, forecast_reliability, action),
         decided_by="rule",
     )
 

@@ -32,8 +32,10 @@ flowchart LR
     B -->|flagged, no option helps| M[Keep level<br/>decided in code, no model call]
     B -->|flagged, an option helps| J["Jev (System 1)<br/>typed, calibrated decision"]
     J -.->|Jev unavailable| R[Fallback rule]
-    J --> T{confidence ≥ threshold?}
-    R --> T
+    J --> G{forecast reliable?}
+    R --> G
+    G -->|no| HUM
+    G -->|yes| T{confidence ≥ threshold?}
     T -->|yes| AUTO[Sent automatically]
     T -->|no| HUM[Sophie reviews]
     AUTO --> W["Advisory (System 2)<br/>free template → IBM Granite, local"]
@@ -43,6 +45,7 @@ flowchart LR
 
 - **Physics** (`backend/physics/`, Dawud): Schmidt-Appleman criterion for formation, ice supersaturation (RHi ≥ 95%) for persistence, the length of the supersaturated region measured along the aircraft's heading, fuel penalty and CO₂e avoided ([Borella et al., 2024](https://acp.copernicus.org/articles/24/9401/2024/)). All assumptions: [`docs/hypotheses.md`](docs/hypotheses.md).
 - **Jev** (`backend/agent/jev.py`): [TypeSafe AI](https://typesafe.ai/)'s non-generative "System One" model gets a compact state (levels, humidity, fuel, net benefit, forecast margin) and 4 typed questions. It does no arithmetic: it chooses, and says how sure it is. If no option has a positive net benefit, the code decides "keep level" without calling Jev.
+- **Guardrail** (`fallback.route_for`): a climb or descent is sent automatically only if Jev is confident **and** rates the weather forecast as reliable (≥ 0.5). Jev can be sure of the best action while doubting the forecast; those cases always go to Sophie.
 - **Fallback rule** (`backend/agent/fallback.py`): same output as Jev, used automatically if Jev is unreachable, so the demo cannot break. The interface always says who decided.
 - **Writers** (`backend/agent/writer.py`): a free template for every advisory; [IBM Granite 4 micro](https://ollama.com/library/granite4) running **locally** (Ollama) rewrites the important ones in plain language. A guard rejects any advisory containing a number that is not in the facts. Apart from Jev's API call, everything runs on the laptop.
 
@@ -103,7 +106,13 @@ python -m venv .venv && source .venv/bin/activate   # Windows: run scripts/setup
 pip install -r requirements.txt
 cp .env.example .env                                  # TYPESAFE_API_KEY (Jev); OpenSky optional
 python scripts/run_api.py                             # → http://localhost:8000 (API + simple map)
-python -m pytest -q                                   # 30 tests, no network needed
+python -m pytest -q                                   # 31 tests, no network needed
+```
+
+**Secrets with [1Password](https://developer.1password.com/docs/cli/secrets-environment-variables/)** (recommended; the repo is public): store the Jev key in a vault named `TrailSense` (item `Jev`, field `credential`), then run anything through `op run`. [`.env.1password`](.env.1password) holds only `op://` references, never a key.
+```bash
+op run --env-file=.env.1password -- python scripts/run_api.py
+op run --env-file=.env.1password -- python scripts/export_snapshots.py
 ```
 
 | Script | What it does |
@@ -135,6 +144,7 @@ More detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) · plan and progress: [`TASKS.
 - **[Jev](https://typesafe.ai/)** (TypeSafe AI): the System 1 decision with calibrated confidence.
 - **[IBM Granite](https://www.ibm.com/granite)** via [Ollama](https://ollama.com/): local advisories and the benchmark's LLM.
 - **[Lovable](https://lovable.dev/)**: the published frontend.
+- **[1Password](https://1password.com/)** CLI: API keys injected at run time (`op run`), shared between teammates in a vault, never in the repo.
 - **[Claude](https://www.anthropic.com/claude)** (Anthropic): coding assistant throughout the weekend.
 - **Data:** [OpenSky Network](https://opensky-network.org/) (aircraft), [Open-Meteo](https://open-meteo.com/) GFS (weather). **Stack:** Python, FastAPI, httpx, Leaflet, React.
 

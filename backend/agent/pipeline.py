@@ -117,7 +117,7 @@ def compute_from_data(data: dict, mode: str, threshold: float) -> Snapshot:
 
 def apply_threshold(snap: Snapshot, threshold: float) -> Snapshot:
     """Re-routes every decision for a new threshold, without recomputing anything."""
-    decisions = [replace(d, route=fallback.route_for(d.confidence, threshold)) for d in snap.decisions]
+    decisions = [replace(d, route=fallback.route_for(d.confidence, threshold, d.forecast_reliability, d.action)) for d in snap.decisions]
     return replace(snap, threshold=threshold, decisions=decisions)
 
 

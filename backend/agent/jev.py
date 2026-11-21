@@ -149,16 +149,17 @@ def parse_answers(assessment: RiskAssessment, answers: dict, threshold: float) -
     """Raw API answers -> Decision. Kept separate so it can be tested without the network."""
     action = answers["action"]
     confidence = round(float(action.get("confidence", 0.0)), 3)
+    forecast_reliability = _normalise_score(answers["forecast_reliability"],
+                                            len(QUESTIONS["forecast_reliability"]["criteria"]))
     return Decision(
         icao24=assessment.icao24,
         action=Action(action["choice"]),
         confidence=confidence,
         persistent_warming_prob=round(float(answers["persistent_warming"].get("noul", 0.0)), 3),
-        forecast_reliability=_normalise_score(answers["forecast_reliability"],
-                                              len(QUESTIONS["forecast_reliability"]["criteria"])),
+        forecast_reliability=forecast_reliability,
         operational_feasibility=_normalise_score(answers["operational_feasibility"],
                                                  len(QUESTIONS["operational_feasibility"]["criteria"])),
-        route=route_for(confidence, threshold),
+        route=route_for(confidence, threshold, forecast_reliability, action["choice"]),
         decided_by="jev",
         probabilities={k: round(float(v), 3) for k, v in action.get("probabilities", {}).items()},
     )

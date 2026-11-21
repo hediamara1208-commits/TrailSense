@@ -34,6 +34,7 @@ DEFAULT_THRESHOLD = 0.8
 
 # Advisory writing cascade: template -> local Granite (-> Claude, optional)
 # No Claude API credits at CodeJam (organizers, Sat 12:00): the Claude tier is off, Granite writes the key advisories.
+MIN_FORECAST_RELIABILITY = 0.5  # guardrail: below this, any climb/descend goes to Sophie whatever the confidence
 MAX_CLAUDE_ADVISORIES = 0      # set to 1-2 with an ANTHROPIC_API_KEY to use Claude for the most important ones
 MAX_GRANITE_ADVISORIES = 5     # routine advisories, written locally
 USE_GRANITE = True             # False if Ollama/Granite does not work: go straight to the template
