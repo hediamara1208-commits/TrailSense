@@ -64,7 +64,7 @@ Order: tonight (1), Saturday morning (3) → (2) → H7, Saturday alongside (4) 
 
 **Judging format (organizer Arthur / CloggedArtery, Discord #hacker-questions, Sat 11:01-11:02):** about **7-8 minutes in total with the judges** (pitch + demo + Q&A), and **no projectors**: demo on our own laptop, as we like. So: a short pitch (~2.5 min), the live demo on the laptop screen, the rest for Q&A; no long video.
 
-**Cloud LLM credits:** Ed hasn't replied; same request sent Sat 11:59 by DM to CloggedArtery (organizer) and as a post in #hacker-questions ("Cloud LLM API credits"). Not blocking: Granite covers writing and the benchmark. Only ask in person if you pass by the Cloud LLM Builder Club.
+**Cloud LLM credits:** Ed hasn't replied; same request sent Sat 11:59 by DM to CloggedArtery and in #hacker-questions; **answer at 12:00: no credits available.** Cloud LLM tier turned off (`MAX_CLOUD_LLM_ADVISORIES = 0`); Granite writes everything. Not a problem: "apart from Jev, everything runs on the laptop" is a better frugality story. Not blocking: Granite covers writing and the benchmark. Only ask in person if you pass by the Cloud LLM Builder Club.
 
 ## While the recorders run (Sat 04:00 → 12:00)
 Nothing here needs new recordings. New cycles are a bonus, picked up at noon.

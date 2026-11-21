@@ -32,10 +32,11 @@ WEATHER_TTL_S = 3600
 # Default autonomy threshold (slider in the UI)
 DEFAULT_THRESHOLD = 0.8
 
-# Advisory writing cascade: template -> local Granite -> Cloud LLM
-MAX_CLOUD_LLM_ADVISORIES = 2      # only the most important ones
+# Advisory writing cascade: template -> local Granite (-> Cloud LLM, optional)
+# No Cloud LLM API credits at CodeJam (organizers, Sat 12:00): the Cloud LLM tier is off, Granite writes the key advisories.
+MAX_CLOUD_LLM_ADVISORIES = 0      # set to 1-2 with an CLOUD_LLM_API_KEY to use Cloud LLM for the most important ones
 MAX_GRANITE_ADVISORIES = 5     # routine advisories, written locally
-USE_GRANITE = True             # False if Ollama/Granite does not work: go straight to template/Cloud LLM
+USE_GRANITE = True             # False if Ollama/Granite does not work: go straight to the template
 OLLAMA_URL = "http://localhost:11434"
 GRANITE_MODEL = "granite4:micro"   # check the exact name with `ollama list` after `ollama pull`
 GRANITE_TIMEOUT_S = 60.0           # first call loads the model into memory (slower)

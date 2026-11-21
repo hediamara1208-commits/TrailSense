@@ -46,9 +46,13 @@ def test_granite_inventing_a_number_is_rejected(monkeypatch):
         writer.granite_advisory(decision(), humid_assessment(), "WET350")
 
 
-def test_route_writers_skips_maintain():
+def test_route_writers_skips_maintain(monkeypatch):
     keep = Decision("bbb222", Action.MAINTAIN, 1.0, 0.9, 1.0, 1.0, Route.AUTO, "physics")
     other = humid_assessment()
     other.icao24 = "bbb222"
+    monkeypatch.setattr(writer.config, "USE_GRANITE", True)
+    monkeypatch.setattr(writer.config, "MAX_CLOUD_LLM_ADVISORIES", 0)     # CodeJam: no Cloud LLM credits
     routes = writer.route_writers([decision(), keep], [humid_assessment(), other])
-    assert routes["bbb222"] == "template" and routes["aaa111"] == "cloud_llm"
+    assert routes["bbb222"] == "template" and routes["aaa111"] == "granite"
+    monkeypatch.setattr(writer.config, "MAX_CLOUD_LLM_ADVISORIES", 2)     # with a key, the top flight goes to Cloud LLM
+    assert writer.route_writers([decision(), keep], [humid_assessment(), other])["aaa111"] == "cloud_llm"

@@ -24,7 +24,7 @@ A frugal AI agent that helps airline dispatchers avoid climate-warming contrails
                        ▼
         agent/writer.py                  ← SYSTEM 2, as a cascade:
           template (free) → local Granite, IBM via Ollama (routine advisories)
-          → Cloud LLM (1-2 key advisories only)
+          (Cloud LLM tier optional, off: no API credits at CodeJam)
                        │
                        ▼
         Snapshot + Receipt  →  api.py  →  frontend (Leaflet map)
@@ -43,7 +43,7 @@ A frugal AI agent that helps airline dispatchers avoid climate-warming contrails
 | `backend/physics/cycle.py` | Dawud | `assess_cycle()`: the whole physics step in one call |
 | `backend/agent/jev.py` | Hedi | Jev decision, autonomy threshold |
 | `backend/agent/fallback.py` | Hedi | Plan B without Jev (hard-coded rule) |
-| `backend/agent/writer.py` | Hedi | Advisories: template → local Granite → Cloud LLM, EcoLogits measurement |
+| `backend/agent/writer.py` | Hedi | Advisories: template → local Granite, numbers guard, local Wh |
 | `backend/agent/pipeline.py` | Hedi | Orchestration of one cycle, Receipt |
 | `backend/benchmark/all_llm.py` | Hedi | Comparison with an all-LLM agent (~20 flights) |
 | `backend/api.py` | Hedi | FastAPI |
@@ -70,7 +70,7 @@ uvicorn backend.api:app --reload                      # or run scripts/run_api.p
 - **Jev** (TypeSafe AI, recommended by the organizers): System 1 decision, real API calls (`agent/jev.py`). Grouped call measured and kept off (inflates confidence).
 - **IBM Granite** (`granite4:micro`, local via Ollama): advisories with a numbers guard (`agent/writer.py`) and the all-LLM side of the benchmark.
 - **Lovable**: the published frontend (separate repo, see `docs/lovable.md`).
-- **Cloud LLM** (provider): coding assistant; the top writing tier is wired in the cascade but needs API credits (asked to the McGill Cloud LLM Builder Club).
+- **Cloud LLM** (provider): coding assistant. The optional Cloud LLM writing tier is off: the organizers confirmed there are no Cloud LLM API credits (Sat 12:00).
 - **1Password** (`op run`): planned (T4) for sharing keys; until then keys stay in `.env`, never committed.
 
 ## Assumptions

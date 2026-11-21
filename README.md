@@ -36,7 +36,7 @@ flowchart LR
     R --> T
     T -->|yes| AUTO[Sent automatically]
     T -->|no| HUM[Sophie reviews]
-    AUTO --> W["Advisory (System 2)<br/>template → IBM Granite (local) → Cloud LLM (1-2 key ones)"]
+    AUTO --> W["Advisory (System 2)<br/>free template → IBM Granite, local"]
     HUM --> W
     W --> UI[Map, flight panel,<br/>review queue, compute receipt]
 ```
@@ -44,7 +44,7 @@ flowchart LR
 - **Physics** (`backend/physics/`, Dawud): Schmidt-Appleman criterion for formation, ice supersaturation (RHi ≥ 95%) for persistence, the length of the supersaturated region measured along the aircraft's heading, fuel penalty and CO₂e avoided ([Borella et al., 2024](https://acp.copernicus.org/articles/24/9401/2024/)). All assumptions: [`docs/hypotheses.md`](docs/hypotheses.md).
 - **Jev** (`backend/agent/jev.py`): [TypeSafe AI](https://typesafe.ai/)'s non-generative "System One" model gets a compact state (levels, humidity, fuel, net benefit, forecast margin) and 4 typed questions. It does no arithmetic: it chooses, and says how sure it is. If no option has a positive net benefit, the code decides "keep level" without calling Jev.
 - **Fallback rule** (`backend/agent/fallback.py`): same output as Jev, used automatically if Jev is unreachable, so the demo cannot break. The interface always says who decided.
-- **Writers** (`backend/agent/writer.py`): a free template for every advisory; [IBM Granite 4 micro](https://ollama.com/library/granite4) running **locally** (Ollama) rewrites the important ones in plain language. A guard rejects any advisory containing a number that is not in the facts. Cloud LLM is wired as the top tier for the 1-2 key advisories (needs API credits).
+- **Writers** (`backend/agent/writer.py`): a free template for every advisory; [IBM Granite 4 micro](https://ollama.com/library/granite4) running **locally** (Ollama) rewrites the important ones in plain language. A guard rejects any advisory containing a number that is not in the facts. Apart from Jev's API call, everything runs on the laptop.
 
 ## Results
 
@@ -120,7 +120,7 @@ More detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) · plan and progress: [`TASKS.
 - **[Jev](https://typesafe.ai/)** (TypeSafe AI): the System 1 decision with calibrated confidence.
 - **[IBM Granite](https://www.ibm.com/granite)** via [Ollama](https://ollama.com/): local advisories and the benchmark's LLM.
 - **[Lovable](https://lovable.dev/)**: the published frontend.
-- **[Cloud LLM](https://www.provider.com/cloud_llm)** (provider): coding assistant throughout the weekend; top writing tier when API credits are available.
+- **[Cloud LLM](https://www.provider.com/cloud_llm)** (provider): coding assistant throughout the weekend.
 - **Data:** [OpenSky Network](https://opensky-network.org/) (aircraft), [Open-Meteo](https://open-meteo.com/) GFS (weather). **Stack:** Python, FastAPI, httpx, Leaflet, React.
 
 ## Team
