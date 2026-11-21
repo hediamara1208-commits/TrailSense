@@ -19,7 +19,7 @@ inside a blue "ice-supersaturated" layer, and two arrows to FL330 / FL370 (one g
 
 ## One-liners to keep in your pocket
 - **Scale:** contrail cirrus is the largest single term of aviation's net effective radiative forcing,
-  larger than aviation's CO₂ (Lee et al., 2021). ⚠️ Check that the README's "35 %" uses the same metric.
+  larger than aviation's CO₂ (Lee et al., 2021). 
 - **Few flights matter:** in Japanese airspace, ~2 % of flights caused ~80 % of the contrail warming (Teoh et al., 2020).
 - **It works in practice:** flights that followed the forecasts cut contrails by 54 % for ~2 % more fuel on those flights
   (Google / American Airlines trial, 2023).
