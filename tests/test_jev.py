@@ -61,6 +61,7 @@ def test_decide_calls_api_once_per_flight(monkeypatch):
     real_client = httpx.Client
     monkeypatch.setattr(jev.httpx, "Client", lambda **kw: real_client(transport=httpx.MockTransport(handler), **kw))
     monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+    monkeypatch.setattr(config, "JEV_GROUPED", False)
     decisions, usage = jev.decide([humid_assessment(), humid_assessment()], 0.8, {"aaa111": "WET350"})
     assert len(sent) == 2 and usage["jev_calls"] == 2 and usage["jev_input_tokens"] == 1200
     assert all(d.action == Action.CLIMB for d in decisions)
@@ -70,3 +71,48 @@ def test_missing_key_raises(monkeypatch):
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
     with pytest.raises(RuntimeError):
         jev.decide([humid_assessment()], 0.8)
+
+
+def other_assessment() -> RiskAssessment:
+    a = humid_assessment()
+    a.icao24 = "bbb222"
+    return a
+
+
+def test_grouped_call_is_one_request(monkeypatch):
+    sent = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        sent.append(body)
+        state = json.loads(body["state"])
+        assert set(state["flights"]) == {"aaa111", "bbb222"} and "note" in state
+        answers = {f"{icao}__{qid}": ANSWERS[qid] for icao in state["flights"] for qid in jev.QUESTIONS}
+        return httpx.Response(200, json={"answers": answers, "usage": {"input_tokens": 900}})
+
+    real_client = httpx.Client
+    monkeypatch.setattr(jev.httpx, "Client", lambda **kw: real_client(transport=httpx.MockTransport(handler), **kw))
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+    monkeypatch.setattr(config, "JEV_GROUPED", True)
+    decisions, usage = jev.decide([humid_assessment(), other_assessment()], 0.8)
+    assert len(sent) == 1 and usage["jev_calls"] == 1 and usage["grouped"]
+    assert [d.icao24 for d in decisions] == ["aaa111", "bbb222"]
+    assert decisions[0].probabilities["climb_2000"] == 0.93
+
+
+def test_grouped_failure_falls_back_to_single_calls(monkeypatch):
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        calls.append(body)
+        if "flights" in json.loads(body["state"]):
+            return httpx.Response(413, json={"error": "too large"})
+        return httpx.Response(200, json={"answers": ANSWERS, "usage": {"input_tokens": 600}})
+
+    real_client = httpx.Client
+    monkeypatch.setattr(jev.httpx, "Client", lambda **kw: real_client(transport=httpx.MockTransport(handler), **kw))
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+    monkeypatch.setattr(config, "JEV_GROUPED", True)
+    decisions, usage = jev.decide([humid_assessment(), other_assessment()], 0.8)
+    assert len(calls) == 3 and len(decisions) == 2 and not usage["grouped"]
