@@ -38,6 +38,8 @@ MAX_GRANITE_ADVISORIES = 5     # routine advisories, written locally
 USE_GRANITE = True             # False if Ollama/Granite does not work: go straight to template/Claude
 OLLAMA_URL = "http://localhost:11434"
 GRANITE_MODEL = "granite4:micro"   # check the exact name with `ollama list` after `ollama pull`
+GRANITE_TIMEOUT_S = 60.0           # first call loads the model into memory (slower)
+LAPTOP_POWER_W = 25.0              # rough laptop draw while generating; local Wh = W x generation time
 CLAUDE_MODEL = "claude-haiku-5-5"  # small model, enough to write a short advisory
 
 # Live mode refresh interval (seconds; anonymous OpenSky = 10 s minimum)
