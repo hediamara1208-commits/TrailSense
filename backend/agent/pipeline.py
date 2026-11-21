@@ -4,7 +4,7 @@
       -> météo (cache)              [Dawud : sources/weather.py]
       -> filtre physique            [Dawud : physics/contrails.py]
       -> Jev sur les vols signalés  [Hedi : agent/jev.py]
-      -> avis (gabarit ou LLM)      [Hedi : agent/writer.py]
+      -> avis (gabarit -> Granite -> Cloud LLM) [Hedi : agent/writer.py]
       -> Snapshot + Receipt         renvoyé par l'API
 
 Optimisation : garder en mémoire le dernier RiskAssessment par avion et ne le recalculer
