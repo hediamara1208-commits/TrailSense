@@ -3,8 +3,8 @@
 
 const COLORS = { grey: "#9aa0a6", orange: "#f29d38", green: "#2e9e6b", purple: "#7b5cd6" };
 
-// 1. The map, centred on southern Québec.
-const map = L.map("map").setView([46.5, -72.5], 6);
+// 1. The map, centred on the BBOX (Gulf of St. Lawrence, Newfoundland, Labrador).
+const map = L.map("map").setView([50, -64], 5);
 // OpenStreetMap tiles (the CARTO dark tiles are blocked on the venue network).
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
@@ -73,7 +73,7 @@ function showPanel(plane, a, d, adv) {
 function showReceipt(r) {
   document.getElementById("receipt").textContent =
     `Compute receipt · ${r.aircraft_scanned} planes scanned · ${r.flagged_by_physics} flagged by physics · ` +
-    `${r.weather_calls} weather call(s), ${r.weather_cache_hits} cache hit(s) · ${r.jev_calls} Jev call(s) · ` +
+    `${r.physics_ms} ms physics · ${r.weather_calls} weather call(s), ${r.weather_cache_hits} cache hit(s) · ${r.jev_calls} Jev call(s) · ` +
     `${r.local_llm_calls} Granite · ${r.llm_calls} Claude · ${(r.llm_energy_wh + r.local_llm_energy_wh).toFixed(2)} Wh · $${r.cost_usd}`;
 }
 
