@@ -14,9 +14,10 @@ from __future__ import annotations
 import json
 from collections import Counter
 
-from backend.models import Aircraft, LevelWeather, WeatherProfile
-from backend.physics.contrails import assess, is_night
-from backend.sources.recorder import nearest_profile, replay_files
+from backend.models import LevelWeather, WeatherProfile
+from backend.physics.contrails import is_night
+from backend.physics.cycle import assess_cycle
+from backend.sources.recorder import replay_files
 
 
 def to_profile(d: dict) -> WeatherProfile:
@@ -42,15 +43,11 @@ def main() -> None:
                 if lv["temperature_c"] < -40:
                     rh_bins[min(int(lv["rh_pct"] // 10) * 10, 120)] += 1
                     rh_max = max(rh_max, lv["rh_pct"])
-        flagged = []
-        for a in data["aircraft"]:
-            ac = Aircraft(**a)
-            p = nearest_profile(weather, ac.lat, ac.lon)
-            if p is None:
-                continue
-            r = assess(ac, to_profile(p))
-            if r and r.flagged:
-                flagged.append(f"{ac.callsign} FL{ac.flight_level}")
+        data["weather"] = weather
+        aircraft, assessments, _ = assess_cycle(data)
+        by_id = {a.icao24: a for a in aircraft}
+        flagged = [f"{by_id[r.icao24].callsign} FL{by_id[r.icao24].flight_level}"
+                   for r in assessments if r.flagged]
         ts = data["timestamp"]
         hhmm = f"{ts // 3600 % 24:02d}:{ts // 60 % 60:02d}"
         night = is_night(46.5, -72.0, ts)
