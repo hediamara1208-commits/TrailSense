@@ -47,5 +47,8 @@ RECORD_WEATHER_INTERVAL_S = 3600
 # Benchmark tout-LLM : limité pour ne pas exploser le coût
 BENCHMARK_MAX_FLIGHTS = 20
 
+# Jev : nom du modèle dans le playground (renvoie "jev-1.14.0" le 20 nov.)
+JEV_MODEL = "jev-preview"
+
 # Plan B : si Jev est indisponible (API en panne, accès anticipé bloqué), on bascule sur la règle codée
 USE_JEV = True
