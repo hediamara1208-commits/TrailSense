@@ -1,75 +1,77 @@
-# Architecture de ContrailWatch
+# ContrailWatch architecture
 
-## En une phrase
-Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de condensation réchauffantes : il trouve en quelques millisecondes les rares vols concernés et propose ±2 000 ft, avec beaucoup moins de calcul qu'un agent classique (ratio mesuré par notre benchmark).
+## In one sentence
+A frugal AI agent that helps airline dispatchers avoid climate-warming contrails: in a few milliseconds it finds the few flights concerned and proposes ±2,000 ft, using far less compute than a conventional agent (ratio measured by our benchmark).
 
-## Le flux (un cycle)
+## The flow (one cycle)
 ```
- OpenSky (avions)            Open-Meteo GFS (T, humidité 300→200 hPa)
-        │                              │  cache par cellule 0,5° × 1 h, 1 appel groupé par cycle
+ OpenSky (aircraft)          Open-Meteo GFS (T, humidity 300→150 hPa)
+        │                              │  fixed grid over the BBOX, cached, batched calls
         └──────────────┬───────────────┘
                        ▼
-        physics/contrails.assess()       ← GRATUIT, déterministe
-        SAC + RHi > 100 % au FL, FL+20, FL-20
-                       │  seulement les vols "flagged"
+        physics/cycle.assess_cycle()     ← FREE, deterministic (~3.7 ms for 40 aircraft)
+        Schmidt-Appleman + RHi ≥ threshold at FL, FL+20, FL-20,
+        ISSR length along the track, fuel and net CO2e for each option
+                       │  only the "flagged" flights
                        ▼
-        agent/jev.decide()               ← SYSTÈME 1 : rapide, calibré, appels groupés
-        (plan B : agent/fallback.py si Jev indisponible)
-        action + confiance → AUTO (≥ seuil) ou HUMAN (< seuil)
-                       │  seulement les 2-3 plus importants
+        no option with a positive net benefit? → MAINTAIN in code, no call
+                       │  otherwise
                        ▼
-        agent/writer.py                  ← SYSTÈME 2, en cascade :
-          gabarit (gratuit) → Granite local, IBM via Ollama (avis courants)
-          → Cloud LLM (1-2 avis clés seulement)
+        agent/jev.decide()               ← SYSTEM 1: fast, calibrated
+        (plan B: agent/fallback.py if Jev is unavailable)
+        action + confidence → AUTO (≥ threshold) or HUMAN (< threshold)
+                       │  only the 2-3 most important
+                       ▼
+        agent/writer.py                  ← SYSTEM 2, as a cascade:
+          template (free) → local Granite, IBM via Ollama (routine advisories)
+          → Cloud LLM (1-2 key advisories only)
                        │
                        ▼
-        Snapshot + Receipt  →  api.py  →  frontend (carte Leaflet)
+        Snapshot + Receipt  →  api.py  →  frontend (Leaflet map)
 ```
 
-## Qui possède quoi
-| Dossier / fichier | Propriétaire | Rôle |
+## Who owns what
+| Folder / file | Owner | Role |
 |---|---|---|
-| `backend/models.py` | **les deux** | Contrats de données. Toute modification se décide à deux. |
-| `backend/config.py` | les deux | Paramètres (zone, niveaux, seuil, cache) |
-| `backend/sources/opensky.py` | Dawud | Avions en direct |
-| `backend/sources/weather.py` | Dawud | Profil météo + cache |
-| `backend/sources/recorder.py` | Dawud | Enregistrer / rejouer le ciel (avions /5 min, météo /1 h) |
-| `backend/physics/contrails.py` | Dawud | SAC, RHi, risque par niveau, jour/nuit |
-| `backend/physics/fuel.py` | Dawud | Pénalité carburant, CO₂ |
-| `backend/agent/jev.py` | Hedi | Décision Jev, seuil d'autonomie |
-| `backend/agent/fallback.py` | Hedi | Plan B sans Jev (règle codée) |
-| `backend/agent/writer.py` | Hedi | Avis : gabarit → Granite local → Cloud LLM, mesure EcoLogits |
-| `backend/agent/pipeline.py` | Hedi | Orchestration d'un cycle, Receipt |
-| `backend/benchmark/all_llm.py` | Hedi | Comparaison avec un agent tout-LLM (~20 vols) |
+| `backend/models.py` | **both** | Data contracts. Any change is decided by both. |
+| `backend/config.py` | both | Settings (area, levels, threshold, cache) |
+| `backend/sources/opensky.py` | Dawud | Live aircraft |
+| `backend/sources/weather.py` | Dawud | Weather profiles + cache |
+| `backend/sources/recorder.py` | Dawud | Record / replay the sky (aircraft every 5 min, weather grid) |
+| `backend/physics/contrails.py` | Dawud | SAC, RHi, risk per level, day/night |
+| `backend/physics/fuel.py` | Dawud | Fuel penalty, warming avoided (Borella et al. 2024), net CO2e |
+| `backend/physics/cycle.py` | Dawud | `assess_cycle()`: the whole physics step in one call |
+| `backend/agent/jev.py` | Hedi | Jev decision, autonomy threshold |
+| `backend/agent/fallback.py` | Hedi | Plan B without Jev (hard-coded rule) |
+| `backend/agent/writer.py` | Hedi | Advisories: template → local Granite → Cloud LLM, EcoLogits measurement |
+| `backend/agent/pipeline.py` | Hedi | Orchestration of one cycle, Receipt |
+| `backend/benchmark/all_llm.py` | Hedi | Comparison with an all-LLM agent (~20 flights) |
 | `backend/api.py` | Hedi | FastAPI |
-| `frontend/` | Hedi | Carte, fiche vol, curseur, reçu |
-| `data/fixtures/sample_snapshot.json` | les deux | Exemple fictif pour avancer en parallèle |
+| `frontend/` | Hedi | Map, flight details, threshold slider, receipt |
+| `data/fixtures/sample_snapshot.json` | both | Fictional example so both sides can work in parallel |
 
-## Les points de contact entre Hedi et Dawud
-1. `assess(aircraft, profile) -> RiskAssessment` : Dawud le produit, Hedi le consomme dans `pipeline.py` et `jev.py`.
-2. `fetch_aircraft()`, `get_profile()`, `load_replay()` : appelés par `pipeline.py`.
-3. Le JSON du `Snapshot` : produit par le backend, lu par le frontend. Le fichier `sample_snapshot.json` en est l'exemple.
+## Contact points between Hedi and Dawud
+1. `assess_cycle(data) -> (aircraft, assessments, stats)`: Dawud produces it, Hedi calls it in `pipeline.py`. `data` comes from `load_replay(i)` (Replay) or `live_cycle_data()` (Live).
+2. `stats` (aircraft_scanned, flagged_by_physics, weather_calls, weather_cache_hits, physics_ms) goes straight into the `Receipt`.
+3. The `Snapshot` JSON: produced by the backend, read by the frontend. `sample_snapshot.json` is the example.
 
-Tant qu'un module n'est pas prêt, l'autre utilise le fichier exemple. Personne n'attend personne.
+While a module isn't ready, the other side uses the example file. Nobody waits for anybody.
 
-## Lancer le projet
+## Running the project
 ```bash
-python -m venv .venv && source .venv/bin/activate   # Windows : .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env                                  # remplir les clés (ou : op run --env-file=.env -- ...)
-ollama pull granite4:micro                            # étage local (nom exact : vérifier avec ollama list)
-uvicorn backend.api:app --reload                      # puis ouvrir http://localhost:8000
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt                      # or on Windows: run scripts/setup_env.py
+cp .env.example .env                                  # fill in the keys (or: op run --env-file=.env -- ...)
+ollama pull granite4:micro                            # local tier (check the exact name with ollama list)
+uvicorn backend.api:app --reload                      # or run scripts/run_api.py, then open http://localhost:8000
 ```
 
-## Outils du hackathon utilisés
-- **Jev** (TypeSafe AI, recommandé par l'organisation) : décision Système 1.
-- **Cloud LLM** (provider, crédits via le Cloud LLM Builder Club McGill) : avis clés + benchmark tout-LLM.
-- **IBM Granite** (modèle ouvert, local via Ollama) : avis courants sans cloud.
-- **1Password** (`op run`) : clés injectées à l'exécution, jamais dans le repo public.
-- **Lovable** (code COMM-MCGILL-BSA6) : option pour accélérer l'interface.
+## Hackathon tools used
+- **Jev** (TypeSafe AI, recommended by the organizers): System 1 decision.
+- **Cloud LLM** (provider, credits via the McGill Cloud LLM Builder Club): key advisories + all-LLM benchmark.
+- **IBM Granite** (open model, local via Ollama): routine advisories without the cloud.
+- **1Password** (`op run`): keys injected at runtime, never in the public repo.
+- **Lovable** (code COMM-MCGILL-BSA6): option to speed up the interface.
 
-## Hypothèses à documenter (docs/hypotheses.md)
-- Convention de l'humidité Open-Meteo (par rapport à l'eau ou à la glace).
-- Rendement propulsif η utilisé dans le critère SAC.
-- Formule de la pénalité carburant.
-- Pourquoi la nuit compte plus (le contrail ne fait que piéger la chaleur).
+## Assumptions
+All physics assumptions (humidity convention, persistence threshold, propulsive efficiency, fuel penalty, warming factor per km, day/night) are documented and sourced in [`docs/hypotheses.md`](docs/hypotheses.md).

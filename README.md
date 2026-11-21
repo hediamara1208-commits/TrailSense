@@ -1,28 +1,28 @@
 # ContrailWatch
 
-**McGill CodeJam 16 (20-22 nov. 2026) · piste visée : Agent Solution**
+**McGill CodeJam 16 (Nov 20-22, 2026) · target track: Agent Solution**
 
-Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de condensation (contrails) qui réchauffent le climat. Il trouve en quelques millisecondes les rares vols concernés et propose de monter ou descendre de 2 000 ft, avec beaucoup moins de calcul qu'un agent classique (ratio mesuré par notre benchmark).
+A frugal AI agent that helps airline dispatchers avoid climate-warming contrails. In a few milliseconds it finds the few flights concerned and proposes to climb or descend 2,000 ft, using far less compute than a conventional agent (ratio measured by our benchmark).
 
-## Pourquoi
-- Les contrails représentent environ 35 % de l'impact réchauffant de l'aviation (GIEC 2022), et une petite minorité de vols en est responsable.
-- Les éviter marche sur les vols qui suivent le plan (−54 % lors d'essais Google / American Airlines), mais l'adoption reste faible en opérations réelles (−11,6 % en intention de traiter, essai 2026).
-- Analyser chaque vol avec un gros LLM serait lent, cher et polluant.
+## Why
+- Contrails account for about 35% of aviation's warming impact (IPCC 2022), and a small minority of flights causes most of it.
+- Avoiding them works on the flights that follow the plan (−54% in Google / American Airlines trials), but adoption is still low in real operations (−11.6% intent-to-treat, 2026 trial).
+- Analysing every flight with a large LLM would be slow, expensive and polluting.
 
-## Comment : penser vite, puis lentement
-1. **Physique (gratuit) :** critère de Schmidt-Appleman + sursaturation en glace, au niveau actuel et à ±2 000 ft.
-2. **Jev (Système 1) :** décision typée et calibrée pour les vols signalés, avec un seuil d'autonomie.
-3. **Rédaction en cascade (Système 2) :** gabarit gratuit, puis IBM Granite en local, puis Cloud LLM seulement pour les 1-2 avis clés.
-4. **Reçu de calcul** et **benchmark** contre un agent tout-LLM.
+## How: think fast, then slow
+1. **Physics (free):** Schmidt-Appleman criterion + ice supersaturation, at the current level and ±2,000 ft, with the length of the supersaturated region along the track (~3.7 ms for 40 aircraft).
+2. **Jev (System 1):** a typed, calibrated decision for the flagged flights, with an autonomy threshold. If no option helps, the code decides "maintain" without calling Jev.
+3. **Writing cascade (System 2):** free template, then IBM Granite locally, then Cloud LLM only for the 1-2 key advisories.
+4. **Compute receipt** and **benchmark** against an all-LLM agent.
 
-Voir [`ARCHITECTURE.md`](ARCHITECTURE.md) et [`TASKS.md`](TASKS.md).
+See [`ARCHITECTURE.md`](ARCHITECTURE.md), [`TASKS.md`](TASKS.md) and [`docs/hypotheses.md`](docs/hypotheses.md).
 
-## Démarrer
+## Getting started
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt     # Windows: run scripts/setup_env.py
 cp .env.example .env
-uvicorn backend.api:app --reload
+uvicorn backend.api:app --reload    # or run scripts/run_api.py, then open http://localhost:8000
 ```
 
-## Équipe
+## Team
 Hedi Amara · Dawud
