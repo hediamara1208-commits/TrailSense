@@ -28,7 +28,7 @@
 - [ ] **H5b · Sat afternoon (optional)** **Local Granite** tier: install Ollama, `ollama pull` the Granite model, `granite_advisory()`, local Wh measurement. **Cut-off: if it doesn't work by 15:00 Saturday, `USE_GRANITE = False` and we stop.**
 - [x] **H6 · Sat afternoon** `agent/pipeline.py`: plug in `assess_cycle()`, fill the `Receipt` (including `physics_ms`). *(Done Sat 01:45: cycle cache, the slider re-routes without recomputing; API serves real replays, falls back to the fixture if `data/replay/` is empty; `decided_by` added to `Decision`.)*
 - [ ] **H7 · Sat afternoon** `benchmark/all_llm.py`: cascade vs all-LLM, **limited to ~20 flights** from the recording.
-- [ ] **H8 · Sat evening** Final interface: Replay/Live toggle, benchmark button, best demo cycles.
+- [ ] **H8 · Sat afternoon/evening** Final interface **built with Lovable** (decided Sat 01:57): prompt + example in `docs/lovable.md`, then pull the Lovable repo, point `fetchSnapshot()` at `/api/snapshot`, serve the build from FastAPI. Replay/Live toggle, benchmark button, best demo cycles. Plan B: the current `frontend/`.
 - [ ] **H9 · Sun morning** Backup video + submission README (GIF, instructions, sources).
 
 ## Pitch: shared

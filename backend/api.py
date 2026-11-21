@@ -17,6 +17,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Query
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -30,6 +31,9 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "data" / "fixtures" / "sample_snapshot.json"
 
 app = FastAPI(title="ContrailWatch")
+# Lets the Lovable preview (and a Vite dev server) read the API on this laptop. Read-only GET API, no secrets.
+app.add_middleware(CORSMiddleware, allow_methods=["GET"], allow_headers=["*"],
+                   allow_origin_regex=r"https://([a-z0-9-]+\.)*(lovable\.app|lovable\.dev|lovableproject\.com)|http://localhost:\d+")
 
 
 def load_fixture(threshold: float) -> dict:
