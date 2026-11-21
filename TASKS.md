@@ -62,7 +62,9 @@ Order: tonight (1), Saturday morning (3) → (2) → H7, Saturday alongside (4) 
 | Sun 9:00 | Rehearsal 2, feature freeze | same | Final README, QR on the new address |
 | Sun 10-11 | Team check-in | same | Final push at 11:00 |
 
-**Cloud LLM credits:** Ed hasn't replied. Not blocking: Granite covers writing and the benchmark. Only ask in person if you pass by the Cloud LLM Builder Club.
+**Judging format (organizer Arthur / CloggedArtery, Discord #hacker-questions, Sat 11:01-11:02):** about **7-8 minutes in total with the judges** (pitch + demo + Q&A), and **no projectors**: demo on our own laptop, as we like. So: a short pitch (~2.5 min), the live demo on the laptop screen, the rest for Q&A; no long video.
+
+**Cloud LLM credits:** Ed hasn't replied; same request sent Sat 11:59 by DM to CloggedArtery (organizer) and as a post in #hacker-questions ("Cloud LLM API credits"). Not blocking: Granite covers writing and the benchmark. Only ask in person if you pass by the Cloud LLM Builder Club.
 
 ## While the recorders run (Sat 04:00 → 12:00)
 Nothing here needs new recordings. New cycles are a bonus, picked up at noon.
