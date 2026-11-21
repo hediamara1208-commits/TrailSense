@@ -38,7 +38,7 @@
 ## Hackathon tools: getting the most out of them (plan agreed Sat 02:30)
 Order: tonight (1), Saturday morning (3) → (2) → H7, Saturday alongside (4) and the extras.
 
-- [ ] **T1 · Sat night, Lovable public demo:** `scripts/export_snapshots.py` writes 5-10 real recorded cycles as JSON into the Lovable app, which reads them when no API is reachable. Publish (lovable.app URL) → QR code on the last slide, for judges and Popular Vote.
+- [ ] **T1 · Sat night, Lovable public demo** *(02:45: picker + bundled cycles done in the Lovable repo; waiting for Dawud's flagged cycles, then Publish)*: `scripts/export_snapshots.py` writes 5-10 real recorded cycles as JSON into the Lovable app, which reads them when no API is reachable. Publish (lovable.app URL) → QR code on the last slide, for judges and Popular Vote.
 - [ ] **T2 · Sat morning, Jev grouped call + uncertainty:** all flagged flights of a cycle in ONE request (fewer calls/tokens on the receipt); show Jev's per-option probabilities as bars in the flight panel. Hedi: ask the TypeSafe team at the venue for 5 min of feedback ("reviewed with TypeSafe's engineers").
 - [ ] **T3 · Sat morning, IBM Granite local tier (= H5b):** Hedi installs Ollama; Claude wires `granite_advisory()` + local Wh. Also unlocks H7 if Claude credits never arrive. Cut-off 15:00.
 - [ ] **T4 · Sat, 1Password:** shared vault with Dawud (Jev, OpenSky, Claude keys), `op run --env-file=.env -- python scripts/run_api.py`, README section. Hedi installs the 1Password CLI and signs in.

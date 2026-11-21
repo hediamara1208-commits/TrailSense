@@ -11,6 +11,17 @@ Lovable code (CodeJam, opening slides): **COMM-MCGILL-BSA6** (Pro plan, 100 cred
 Optional: to test the Lovable preview directly against your laptop, `api.py` allows CORS from
 Lovable domains; set `VITE_API_BASE=http://localhost:8000` (Chrome may ask to allow local network access).
 
+## Status (Sat 02:45)
+- Lovable project: "Pixel Perfect Screenshot Muse", synced to GitHub `hediamara1208-commits/pixel-perfect-screenshot-muse-09` (branch `main`, two-way sync).
+- It is a TanStack Start app (server-rendered). Recorded cycles are bundled from `src/data/snapshots/*.json`;
+  a previous/next picker steps through them (real cycles with flagged flights first, then the fictional example, then dry cycles).
+- `VITE_API_BASE=http://localhost:8000` makes it read the live API instead (CORS is allowed in `api.py`).
+
+## Refreshing the demo cycles (T1)
+1. Laptop, VS Code: run `scripts/export_snapshots.py` (real Jev calls) -> `data/exports/snapshots/`.
+2. Copy the `*.json` cycle files (not `index.json`) into the Lovable repo's `src/data/snapshots/`, commit, push to `main`.
+3. Lovable picks it up; click Publish to update the public link.
+
 ## Prompt 1 (paste as is)
 
 Build a single-page dashboard called **ContrailWatch** for an airline dispatcher named Sophie. Dark theme, calm and professional (an aviation operations look).
