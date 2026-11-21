@@ -66,8 +66,8 @@ Nothing here needs new recordings. New cycles are a bonus, picked up at noon.
 - [ ] **D10 · Fact-check the rest:** −54 %, −11.6 %, Borella factor, Teoh numbers.
 
 **Cloud LLM**
-- [ ] **W9 · Benchmark on the 3 flagged cycles** (not just AAL278): a larger sample for the slide (runs on Hedi's laptop, ~7 min per cycle).
-- [ ] **W10 · README for the judges:** what it does, live link + QR, architecture diagram, results table, how to run, tools used, sources.
+- [x] **W9 · Benchmark on the 3 flagged cycles** (not just AAL278): a larger sample for the slide (runs on Hedi's laptop, ~7 min per cycle). *(done 04:36: 60 flights, 10x fewer calls, 27x faster, 30x less local energy; all-LLM: 57/57 false alarms, wrong action on UPS214)*
+- [x] **W10 · README for the judges:** what it does, live link + QR, architecture diagram, results table, how to run, tools used, sources. *(done 04:25)*
 - [ ] **W11 · Pitch deck** from W1, once Hedi has written the storyline.
 
 ## Pitch: shared

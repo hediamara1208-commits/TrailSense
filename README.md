@@ -52,16 +52,17 @@ flowchart LR
 The all-LLM agent gets each aircraft and its weather profile and does everything itself (one local Granite call per aircraft). Measured on a laptop, `scripts/run_benchmark.py`, full output in [`data/benchmark/latest.json`](data/benchmark/latest.json).
 
 <!-- BENCHMARK-TABLE -->
-| 20 flights, cycle 1795235835 | All-LLM agent | ContrailWatch | |
+| 3 recorded cycles, 60 flights, 3 flagged | All-LLM agent | ContrailWatch | |
 |---|---|---|---|
-| Model calls | 20 | 2 (1 Jev + 1 Granite) | **10× fewer** |
-| Time | 7 min 11 s | 8.8 s | **49× faster** |
-| Local energy (est.) | 2.60 Wh | 0.039 Wh | **67× less** |
-| Contrails found (physics = reference) | 1/1 | 1/1 | |
-| **False alarms** | **19** | 0 | |
+| Model calls | 60 | 6 (3 Jev + 3 Granite) | **10× fewer** |
+| Time | 23 min 23 s | 52 s | **27× faster** |
+| Local energy (est.) | 8.55 Wh | 0.28 Wh | **30× less** |
+| Contrails found (physics = reference) | 3/3 | 3/3 | |
+| **False alarms** | **57 of 57** clear flights | 0 | |
+| Right action on the flagged flights | 2/3 (UPS214: climb, the option with no benefit) | 3/3 | |
 <!-- /BENCHMARK-TABLE -->
 
-Asked to judge contrails by itself, the all-LLM agent flagged almost every flight: it would have sent the dispatcher a stream of needless, fuel-burning deviations. **Physics first is cheaper *and* more reliable.**
+Asked to judge contrails by itself, the all-LLM agent said "persistent contrail" for **every single flight**: it would have sent the dispatcher 57 needless, fuel-burning deviations, and it picked the wrong direction for UPS214. ContrailWatch's time includes loading the local model once. **Physics first is cheaper *and* more reliable.**
 
 ### Jev on the real flagged flights
 | Flight (night, Eastern Canada) | Jev's decision | Per-option probability | Route |
