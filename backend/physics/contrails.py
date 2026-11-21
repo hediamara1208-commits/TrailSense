@@ -1,4 +1,4 @@
-"""[HEDI] Le cœur scientifique : ce contrail va-t-il se former, et va-t-il durer ?
+"""[DAWUD] Le cœur scientifique : ce contrail va-t-il se former, et va-t-il durer ?
 
 Deux conditions (toutes les deux nécessaires pour un contrail persistant) :
 1. Critère de Schmidt-Appleman (SAC) : le mélange gaz d'échappement + air ambiant

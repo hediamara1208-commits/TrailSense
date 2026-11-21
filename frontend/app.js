@@ -1,4 +1,4 @@
-// [DAWUD] Logique de l'interface.
+// [HEDI] Logique de l'interface.
 // 1. Démarrer avec fetch('../data/fixtures/sample_snapshot.json') tant que l'API n'est pas prête,
 //    puis passer à fetch('/api/snapshot?mode=...&threshold=...').
 // 2. Dessiner chaque avion (L.circleMarker) avec une couleur selon assessment.flagged et decision.route.

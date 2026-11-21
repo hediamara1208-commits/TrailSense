@@ -1,4 +1,4 @@
-"""[HEDI] Avions en direct depuis OpenSky.
+"""[DAWUD] Avions en direct depuis OpenSky.
 
 API : GET https://opensky-network.org/api/states/all?lamin=..&lamax=..&lomin=..&lomax=..
 Anonyme = état actuel seulement, résolution 10 s, crédits limités (erreur 429 si dépassé).

@@ -1,4 +1,4 @@
-"""[DAWUD] Jev = Système 1 : décision rapide, typée et calibrée pour les vols signalés.
+"""[HEDI] Jev = Système 1 : décision rapide, typée et calibrée pour les vols signalés.
 
 SDK : pip install typesafe-sdk ; clé dans TYPESAFE_API_KEY ; modèle "jev-latest".
 Doc : https://docs.typesafe.ai/introduction/quickstart.md

@@ -1,4 +1,4 @@
-"""[DAWUD] API FastAPI. Lancer : uvicorn backend.api:app --reload
+"""[HEDI] API FastAPI. Lancer : uvicorn backend.api:app --reload
 
 Endpoints :
 - GET /api/snapshot?mode=replay|live&threshold=0.8&i=0  -> Snapshot en JSON

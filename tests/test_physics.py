@@ -1,4 +1,4 @@
-"""[HEDI] Tests de la physique : ce qu'on doit pouvoir défendre devant le jury.
+"""[DAWUD] Tests de la physique : ce qu'on doit pouvoir défendre devant le jury.
 
 Cas à écrire (valeurs de référence à vérifier dans la littérature) :
 - rh_ice > rh_water quand T < 0 °C (la glace sature avant l'eau).

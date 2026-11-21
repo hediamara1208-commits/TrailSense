@@ -1,4 +1,4 @@
-"""[DAWUD] LLM = Système 2 : rédiger l'avis pour la régulatrice, seulement quand ça vaut le coût.
+"""[HEDI] LLM = Système 2 : rédiger l'avis pour la régulatrice, seulement quand ça vaut le coût.
 
 Règle : le LLM n'écrit que les MAX_LLM_ADVISORIES avis les plus importants
 (nuit, forte probabilité de réchauffement, forte confiance). Les autres utilisent un gabarit.
