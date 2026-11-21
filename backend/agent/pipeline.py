@@ -91,8 +91,13 @@ def write_advisories(decisions: list[Decision], assessments: list[RiskAssessment
 
 def compute_cycle(mode: str, replay_index: int, threshold: float) -> Snapshot:
     """The real work: physics -> decisions -> advisories -> Receipt."""
-    t0 = time.perf_counter()
     data = live_cycle_data() if mode == "live" else load_replay(replay_index)
+    return compute_from_data(data, mode, threshold)
+
+
+def compute_from_data(data: dict, mode: str, threshold: float) -> Snapshot:
+    """Same as compute_cycle() for an already-loaded cycle (any region; used by scripts/export_snapshots.py)."""
+    t0 = time.perf_counter()
     aircraft, assessments, stats = assess_cycle(data)
     receipt = Receipt(**stats)
     callsigns = {ac.icao24: ac.callsign for ac in aircraft}
