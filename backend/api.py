@@ -3,7 +3,7 @@ or in a terminal: uvicorn backend.api:app --reload   then open http://localhost:
 
 Endpoints:
 - GET /api/snapshot?mode=replay|live&threshold=0.8&i=0  -> one Snapshot as JSON
-- GET /api/benchmark                                    -> benchmark result (not built yet)
+- GET /api/benchmark                                    -> latest benchmark result (scripts/run_benchmark.py)
 - GET /                                                 -> the web page (frontend/)
 
 /api/snapshot runs the real pipeline (pipeline.run_cycle). Each answer carries a "source" field:
@@ -69,8 +69,12 @@ def snapshot(
 
 @app.get("/api/benchmark")
 def benchmark():
-    # TODO (later step): return the result of benchmark/all_llm.run_benchmark()
-    return JSONResponse({"status": "not_built_yet"}, status_code=501)
+    """Latest benchmark result (cascade vs all-LLM), written by scripts/run_benchmark.py.
+    Not run on request: the all-LLM side takes minutes, which is exactly the point."""
+    from backend.benchmark.all_llm import OUT
+    if not OUT.exists():
+        return JSONResponse({"status": "not_run_yet", "how": "run scripts/run_benchmark.py"}, status_code=404)
+    return json.loads(OUT.read_text(encoding="utf-8"))
 
 
 # The web page. Mounted LAST so it doesn't hide the /api routes above.
