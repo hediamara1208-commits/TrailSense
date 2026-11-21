@@ -14,6 +14,7 @@ Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de
                        │  seulement les vols "flagged"
                        ▼
         agent/jev.decide()               ← SYSTÈME 1 : rapide, calibré, appels groupés
+        (plan B : agent/fallback.py si Jev indisponible)
         action + confiance → AUTO (≥ seuil) ou HUMAN (< seuil)
                        │  seulement les 2-3 plus importants
                        ▼
@@ -28,21 +29,22 @@ Un agent IA frugal qui aide les régulateurs de vol à éviter les traînées de
 |---|---|---|
 | `backend/models.py` | **les deux** | Contrats de données. Toute modification se décide à deux. |
 | `backend/config.py` | les deux | Paramètres (zone, niveaux, seuil, cache) |
-| `backend/sources/opensky.py` | Hedi | Avions en direct |
-| `backend/sources/weather.py` | Hedi | Profil météo + cache |
-| `backend/sources/recorder.py` | Hedi | Enregistrer / rejouer le ciel |
-| `backend/physics/contrails.py` | Hedi | SAC, RHi, risque par niveau, jour/nuit |
-| `backend/physics/fuel.py` | Hedi | Pénalité carburant, CO₂ |
-| `backend/benchmark/all_llm.py` | Hedi | Comparaison avec un agent tout-LLM |
-| `backend/agent/jev.py` | Dawud | Décision Jev, seuil d'autonomie |
-| `backend/agent/writer.py` | Dawud | Avis LLM ou gabarit, mesure EcoLogits |
-| `backend/agent/pipeline.py` | Dawud | Orchestration d'un cycle, Receipt |
-| `backend/api.py` | Dawud | FastAPI |
-| `frontend/` | Dawud | Carte, fiche vol, curseur, reçu |
+| `backend/sources/opensky.py` | Dawud | Avions en direct |
+| `backend/sources/weather.py` | Dawud | Profil météo + cache |
+| `backend/sources/recorder.py` | Dawud | Enregistrer / rejouer le ciel (avions /10 min, météo /1 h) |
+| `backend/physics/contrails.py` | Dawud | SAC, RHi, risque par niveau, jour/nuit |
+| `backend/physics/fuel.py` | Dawud | Pénalité carburant, CO₂ |
+| `backend/agent/jev.py` | Hedi | Décision Jev, seuil d'autonomie |
+| `backend/agent/fallback.py` | Hedi | Plan B sans Jev (règle codée) |
+| `backend/agent/writer.py` | Hedi | Avis LLM ou gabarit, mesure EcoLogits |
+| `backend/agent/pipeline.py` | Hedi | Orchestration d'un cycle, Receipt |
+| `backend/benchmark/all_llm.py` | Hedi | Comparaison avec un agent tout-LLM (~20 vols) |
+| `backend/api.py` | Hedi | FastAPI |
+| `frontend/` | Hedi | Carte, fiche vol, curseur, reçu |
 | `data/fixtures/sample_snapshot.json` | les deux | Exemple fictif pour avancer en parallèle |
 
 ## Les points de contact entre Hedi et Dawud
-1. `assess(aircraft, profile) -> RiskAssessment` : Hedi le produit, Dawud le consomme dans `pipeline.py` et `jev.py`.
+1. `assess(aircraft, profile) -> RiskAssessment` : Dawud le produit, Hedi le consomme dans `pipeline.py` et `jev.py`.
 2. `fetch_aircraft()`, `get_profile()`, `load_replay()` : appelés par `pipeline.py`.
 3. Le JSON du `Snapshot` : produit par le backend, lu par le frontend. Le fichier `sample_snapshot.json` en est l'exemple.
 

@@ -25,3 +25,14 @@ MAX_LLM_ADVISORIES = 3
 
 # Intervalle de rafraîchissement en mode live (secondes, OpenSky anonyme = 10 s mini)
 REFRESH_S = 30
+
+# Enregistrement de nuit : économiser les crédits OpenSky (une capture toutes les 5-10 min)
+RECORD_INTERVAL_S = 600
+# Météo : une fois par heure suffit (GFS n'est mis à jour que toutes les 6 h)
+RECORD_WEATHER_INTERVAL_S = 3600
+
+# Benchmark tout-LLM : limité pour ne pas exploser le coût
+BENCHMARK_MAX_FLIGHTS = 20
+
+# Plan B : si Jev est indisponible (API en panne, accès anticipé bloqué), on bascule sur la règle codée
+USE_JEV = True

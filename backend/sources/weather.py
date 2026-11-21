@@ -1,4 +1,4 @@
-"""[HEDI] Profil météo en altitude depuis Open-Meteo (GFS), avec cache.
+"""[DAWUD] Profil météo en altitude depuis Open-Meteo (GFS), avec cache.
 
 API : https://api.open-meteo.com/v1/gfs  (gratuit, sans clé)
 Variables : temperature_{p}hPa, relative_humidity_{p}hPa, geopotential_height_{p}hPa

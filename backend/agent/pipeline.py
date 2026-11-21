@@ -1,10 +1,10 @@
-"""[DAWUD] Orchestrateur : un cycle complet, du ciel jusqu'au Snapshot.
+"""[HEDI] Orchestrateur : un cycle complet, du ciel jusqu'au Snapshot.
 
     avions (live ou replay)
-      -> météo (cache)              [Hedi : sources/weather.py]
-      -> filtre physique            [Hedi : physics/contrails.py]
-      -> Jev sur les vols signalés  [Dawud : agent/jev.py]
-      -> avis (gabarit ou LLM)      [Dawud : agent/writer.py]
+      -> météo (cache)              [Dawud : sources/weather.py]
+      -> filtre physique            [Dawud : physics/contrails.py]
+      -> Jev sur les vols signalés  [Hedi : agent/jev.py]
+      -> avis (gabarit ou LLM)      [Hedi : agent/writer.py]
       -> Snapshot + Receipt         renvoyé par l'API
 
 Optimisation : garder en mémoire le dernier RiskAssessment par avion et ne le recalculer

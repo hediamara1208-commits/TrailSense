@@ -1,4 +1,4 @@
-"""[HEDI] Coût carburant et CO₂ d'un changement de niveau.
+"""[DAWUD] Coût carburant et CO₂ d'un changement de niveau.
 
 Hypothèses simples, à documenter dans docs/hypotheses.md :
 - Pénalité ≈ quelques % de la consommation de croisière sur la portion déviée
