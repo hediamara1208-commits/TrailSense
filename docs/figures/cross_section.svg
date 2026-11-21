@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" font-family="Helvetica, Arial, sans-serif">
+  <!-- W8: physics slide. Cross-section of the sky along the aircraft track. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1d3a"/>
+      <stop offset="1" stop-color="#27466e"/>
+    </linearGradient>
+    <linearGradient id="issr" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd3ff" stop-opacity="0.15"/>
+      <stop offset="0.5" stop-color="#7fd3ff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#7fd3ff" stop-opacity="0.15"/>
+    </linearGradient>
+    <marker id="green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3ddc84"/>
+    </marker>
+    <marker id="red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff6b6b"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="540" fill="url(#sky)"/>
+
+  <!-- Flight-level axis -->
+  <g fill="#c9d6ea" font-size="18">
+    <text x="30" y="128">FL370</text>
+    <text x="30" y="268">FL350</text>
+    <text x="30" y="408">FL330</text>
+  </g>
+  <g stroke="#c9d6ea" stroke-opacity="0.25" stroke-dasharray="6 8">
+    <line x1="100" y1="122" x2="930" y2="122"/>
+    <line x1="100" y1="262" x2="930" y2="262"/>
+    <line x1="100" y1="402" x2="930" y2="402"/>
+  </g>
+
+  <!-- Ice-supersaturated layer (ISSR): thin, along the track -->
+  <rect x="100" y="205" width="830" height="115" rx="40" fill="url(#issr)"/>
+  <text x="560" y="232" fill="#bfe9ff" font-size="20" font-weight="bold">Ice-supersaturated layer (RHi ≥ 95 %)</text>
+  <text x="560" y="256" fill="#bfe9ff" font-size="16">often ~2,000 ft thick, up to hundreds of km</text>
+
+  <!-- Persistent contrail behind the aircraft -->
+  <path d="M110,262 C200,256 260,268 330,262" stroke="#ffffff" stroke-width="16" stroke-linecap="round" opacity="0.35"/>
+  <path d="M150,262 C220,258 270,266 330,262" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.7"/>
+  <text x="120" y="300" fill="#ffffff" font-size="15" opacity="0.9">persistent contrail → cirrus for hours</text>
+
+  <!-- Aircraft (simple side view) -->
+  <g transform="translate(330,262)" fill="#ffffff">
+    <path d="M0,-6 L70,-6 Q88,-6 92,0 Q88,6 70,6 L0,6 Z"/>
+    <path d="M30,-5 L18,-30 L28,-30 L50,-5 Z"/>
+    <path d="M2,-5 L-6,-22 L4,-22 L14,-5 Z"/>
+  </g>
+
+  <!-- Option: climb 2,000 ft (out of the layer) -->
+  <path d="M440,252 C520,230 560,150 640,128" fill="none" stroke="#3ddc84" stroke-width="5" marker-end="url(#green)"/>
+  <text x="645" y="120" fill="#3ddc84" font-size="20" font-weight="bold">+2,000 ft: dry air, no contrail</text>
+  <text x="645" y="146" fill="#c9f5da" font-size="16">real case: 4 kg fuel, 3.7 t CO2e avoided</text>
+
+  <!-- Option: descend 2,000 ft (still humid in this example) -->
+  <path d="M440,272 C520,300 560,380 640,400" fill="none" stroke="#ff6b6b" stroke-width="5" marker-end="url(#red)"/>
+  <text x="645" y="400" fill="#ff6b6b" font-size="20" font-weight="bold">−2,000 ft: checked too</text>
+  <text x="645" y="426" fill="#ffd0d0" font-size="16">kept only if the net benefit is positive</text>
+
+  <!-- Footer -->
+  <text x="30" y="500" fill="#c9d6ea" font-size="16">Form: Schmidt-Appleman criterion (T &lt; T_LM).  Persist: RHi ≥ 95 %.  ±2,000 ft keeps a legal RVSM level.</text>
+  <text x="30" y="524" fill="#8aa0bf" font-size="13">ContrailWatch · GFS via Open-Meteo, OpenSky · warming factor from Borella et al. (2024)</text>
+</svg>
