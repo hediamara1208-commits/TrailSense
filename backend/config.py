@@ -35,7 +35,8 @@ DEFAULT_THRESHOLD = 0.8
 # Advisory writing cascade: template -> local Granite (-> Cloud LLM, optional)
 # No Cloud LLM API credits at CodeJam (organizers, Sat 12:00): the Cloud LLM tier is off, Granite writes the key advisories.
 # Guardrail on Jev's forecast-reliability score (0-1): below it, a climb/descend always goes to Sophie.
-# OFF (0.0): measured on all recorded cycles, Jev rates EVERY GFS humidity forecast "low" (0.01-0.11),
+# OFF (0.0). History: with a generic question Jev rated EVERY GFS forecast "low" (0.01-0.11); the question is now
+# calibrated for GFS (100% = strongest signal) and scores are 0.53-0.98. Original note:
 # because GFS caps humidity at 100 % right at the 95 % threshold. At 0.5 it would send every move to review,
 # so the score carries no signal here; the high autonomy threshold does that job. Turn on with a better forecast.
 MIN_FORECAST_RELIABILITY = 0.0
