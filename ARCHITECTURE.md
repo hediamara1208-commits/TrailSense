@@ -27,10 +27,10 @@ A frugal AI agent that helps airline dispatchers avoid climate-warming contrails
           (Cloud LLM tier optional, off: no API credits at CodeJam)
                        │
                        ▼
-        Snapshot + Receipt  →  api.py  →  frontend (Leaflet map)
+        Snapshot + Receipt  →  api.py  →  Lovable app (map, review queue)
 ```
 
-## Who owns what
+## Modules
 | Folder / file | Owner | Role |
 |---|---|---|
 | `backend/models.py` | **both** | Data contracts. Any change is decided by both. |
@@ -47,31 +47,28 @@ A frugal AI agent that helps airline dispatchers avoid climate-warming contrails
 | `backend/agent/pipeline.py` | Hedi | Orchestration of one cycle, Receipt |
 | `backend/benchmark/all_llm.py` | Hedi | Comparison with an all-LLM agent (~20 flights) |
 | `backend/api.py` | Hedi | FastAPI |
-| `frontend/` | Hedi | Map, flight details, threshold slider, receipt |
-| `data/fixtures/sample_snapshot.json` | both | Fictional example so both sides can work in parallel |
+| `data/fixtures/sample_snapshot.json` | both | Fictional example snapshot (used by the tests) |
 
-## Contact points between Hedi and Dawud
-1. `assess_cycle(data) -> (aircraft, assessments, stats)`: Dawud produces it, Hedi calls it in `pipeline.py`. `data` comes from `load_replay(i)` (Replay) or `live_cycle_data()` (Live).
+## Interfaces
+1. `assess_cycle(data) -> (aircraft, assessments, stats)`: the physics step, called by `pipeline.py`. `data` comes from `load_replay(i)` (replay) or `live_cycle_data()` (live).
 2. `stats` (aircraft_scanned, flagged_by_physics, weather_calls, weather_cache_hits, physics_ms) goes straight into the `Receipt`.
-3. The `Snapshot` JSON: produced by the backend, read by the frontend. `sample_snapshot.json` is the example.
-
-While a module isn't ready, the other side uses the example file. Nobody waits for anybody.
+3. The `Snapshot` JSON: produced by the backend, read by the Lovable app. `data/fixtures/sample_snapshot.json` is an example.
 
 ## Running the project
 ```bash
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt                      # or on Windows: run scripts/setup_env.py
-cp .env.example .env                                  # fill in the keys (or: op run --env-file=.env -- ...)
+cp .env.example .env                                  # fill in the keys, or use 1Password: op run --env-file=.env.1password -- ...
 ollama pull granite4:micro                            # local tier (check the exact name with ollama list)
-uvicorn backend.api:app --reload                      # or run scripts/run_api.py, then open http://localhost:8000
+uvicorn backend.api:app --reload                      # or run scripts/run_api.py (JSON API on http://localhost:8000)
 ```
 
-## Hackathon tools used (status Sat 04:25)
+## Tools used
 - **Jev** (TypeSafe AI, recommended by the organizers): System 1 decision, real API calls (`agent/jev.py`). Grouped call measured and kept off (inflates confidence).
 - **IBM Granite** (`granite4:micro`, local via Ollama): advisories with a numbers guard (`agent/writer.py`) and the all-LLM side of the benchmark.
-- **Lovable**: the published frontend (separate repo, see `docs/lovable.md`).
-- **Cloud LLM** (provider): coding assistant. The optional Cloud LLM writing tier is off: the organizers confirmed there are no Cloud LLM API credits (Sat 12:00).
-- **1Password** (`op run`): planned (T4) for sharing keys; until then keys stay in `.env`, never committed.
+- **Lovable**: the published frontend (separate repo).
+- **Cloud LLM** (provider): coding assistant. The optional Cloud LLM writing tier is off (no API credits).
+- **1Password** (`op run --env-file=.env.1password`): the Jev key is served from a vault at run time, never stored in the repo.
 
 ## Assumptions
 All physics assumptions (humidity convention, persistence threshold, propulsive efficiency, fuel penalty, warming factor per km, day/night) are documented and sourced in [`docs/hypotheses.md`](docs/hypotheses.md).

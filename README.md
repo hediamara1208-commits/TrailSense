@@ -105,7 +105,7 @@ Where two options are almost equally good (AAL278: +3,737 vs +3,733 kg CO₂e) a
 python -m venv .venv && source .venv/bin/activate   # Windows: run scripts/setup_env.py
 pip install -r requirements.txt
 cp .env.example .env                                  # TYPESAFE_API_KEY (Jev); OpenSky optional
-python scripts/run_api.py                             # → http://localhost:8000 (API + simple map)
+python scripts/run_api.py                             # → JSON API on http://localhost:8000
 python -m pytest -q                                   # 31 tests, no network needed
 ```
 
@@ -123,9 +123,9 @@ op run --env-file=.env.1password -- python scripts/export_snapshots.py
 | `scripts/try_jev.py`, `try_jev_grouped.py` | One real Jev call; grouped vs one-by-one comparison |
 | `scripts/run_benchmark.py` | The benchmark above |
 | `scripts/export_snapshots.py` | Exports real cycles for the published demo |
-| `python -m backend.physics.scan [region]` | Scans a whole recording for flagged flights (Dawud) |
+| `python -m backend.physics.scan [region]` | Scans a whole recording for flagged flights |
 
-The published frontend is a separate Lovable project (React / TanStack Start) that bundles the exported cycles; see [`docs/lovable.md`](docs/lovable.md). It can also read this API live (`VITE_API_BASE=http://localhost:8000`).
+The published frontend is a separate Lovable project (React / TanStack Start) that bundles the exported cycles. It can also read this API live (`VITE_API_BASE=http://localhost:8000`).
 
 ## Repository map
 | Path | Owner | Role |
@@ -134,11 +134,11 @@ The published frontend is a separate Lovable project (React / TanStack Start) th
 | `backend/physics/` | Dawud | Contrail physics, fuel and CO₂e, `assess_cycle()`, scan |
 | `backend/agent/` | Hedi | Jev, fallback rule, writers, pipeline |
 | `backend/benchmark/` | Hedi | Cascade vs all-LLM |
-| `backend/api.py`, `frontend/` | Hedi | API and the simple built-in map |
+| `backend/api.py` | Hedi | JSON API read by the Lovable app |
 | `backend/models.py`, `backend/config.py` | both | Data contracts and settings |
 | `data/replay/` | Dawud | Recorded cycles used by the demo |
 
-More detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) · plan and progress: [`TASKS.md`](TASKS.md) · pitch physics notes: [`docs/pitch_physics.md`](docs/pitch_physics.md).
+More detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) · physics hypotheses: [`docs/hypotheses.md`](docs/hypotheses.md) · fact check: [`docs/fact_check.md`](docs/fact_check.md).
 
 ## Built with
 - **[Jev](https://typesafe.ai/)** (TypeSafe AI): the System 1 decision with calibrated confidence.

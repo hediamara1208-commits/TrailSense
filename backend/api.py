@@ -4,7 +4,6 @@ or in a terminal: uvicorn backend.api:app --reload   then open http://localhost:
 Endpoints:
 - GET /api/snapshot?mode=replay|live&threshold=0.8&i=0  -> one Snapshot as JSON
 - GET /api/benchmark                                    -> latest benchmark result (scripts/run_benchmark.py)
-- GET /                                                 -> the web page (frontend/)
 
 /api/snapshot runs the real pipeline (pipeline.run_cycle). Each answer carries a "source" field:
 "replay <file>", "live", or "fixture" when there is no recording yet (fictional example,
@@ -19,7 +18,6 @@ from fastapi import FastAPI, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 
 from backend import config
 from backend.agent import pipeline
@@ -78,4 +76,3 @@ def benchmark():
 
 
 # The web page. Mounted LAST so it doesn't hide the /api routes above.
-app.mount("/", StaticFiles(directory=ROOT / "frontend", html=True), name="frontend")
