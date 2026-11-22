@@ -20,11 +20,10 @@ A frugal AI agent that helps airline dispatchers avoid climate-warming contrails
         agent/jev.decide()               ← SYSTEM 1: fast, calibrated
         (plan B: agent/fallback.py if Jev is unavailable)
         action + confidence → AUTO (≥ threshold) or HUMAN (< threshold)
-                       │  only the 2-3 most important
+                       │
                        ▼
-        agent/writer.py                  ← SYSTEM 2, as a cascade:
-          template (free) → local Granite, IBM via Ollama (routine advisories)
-          (Cloud LLM tier optional, off: no API credits at CodeJam)
+        agent/writer.py                  ← crew messages:
+          local Granite (IBM, via Ollama) for the 5 most important moves, free template for the rest
                        │
                        ▼
         Snapshot + Receipt  →  api.py  →  Lovable app (map, review queue)
@@ -67,7 +66,6 @@ uvicorn backend.api:app --reload                      # or run scripts/run_api.p
 - **Jev** (TypeSafe AI, recommended by the organizers): System 1 decision, real API calls (`agent/jev.py`). Grouped call measured and kept off (inflates confidence).
 - **IBM Granite** (`granite4:micro`, local via Ollama): advisories with a numbers guard (`agent/writer.py`) and the all-LLM side of the benchmark.
 - **Lovable**: the published frontend (separate repo).
-- **Cloud LLM** (provider): coding assistant. The optional Cloud LLM writing tier is off (no API credits).
 - **1Password** (`op run --env-file=.env.1password`): the Jev key is served from a vault at run time, never stored in the repo.
 
 ## Assumptions

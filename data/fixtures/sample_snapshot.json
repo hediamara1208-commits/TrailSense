@@ -163,7 +163,7 @@
       "icao24": "c0ffee",
       "callsign": "TEST101",
       "text": "TEST101 at FL360 is flying through an ice-supersaturated layer (RHi 118%). FL340 is dry. Proposal: descend 2,000 ft. Cost: +38 kg of fuel. Confidence: 0.91.",
-      "written_by": "cloud_llm"
+      "written_by": "granite"
     },
     {
       "icao24": "c0ffef",

@@ -4,7 +4,7 @@
       -> weather (cache) + physics filter     [Dawud: physics/cycle.py -> assess_cycle()]
       -> flagged, no option with a positive net benefit -> MAINTAIN in code (no Jev call)
       -> Jev on the other flagged flights      [Hedi: agent/jev.py]; plan B: agent/fallback.py
-      -> advisories (template -> Granite -> Cloud LLM) [Hedi: agent/writer.py]
+      -> advisories (Granite for the key moves, template for the rest) [Hedi: agent/writer.py]
       -> Snapshot + Receipt                   returned by the API
 
 Frugality:
@@ -61,33 +61,22 @@ def decide_all(assessments: list[RiskAssessment], threshold: float,
 
 def write_advisories(decisions: list[Decision], assessments: list[RiskAssessment],
                      callsigns: dict[str, str], receipt: Receipt) -> list[Advisory]:
-    """Writing cascade. Any tier that fails (not built, Ollama off, no credits) falls back to the template."""
+    """Writing cascade: Granite for the most important moves, the template for the rest.
+    If Granite fails (Ollama off, numbers guard), that advisory falls back to the template."""
     by_id = {a.icao24: a for a in assessments}
     routes = writer.route_writers(decisions, assessments)
     out = []
     for d in decisions:
-        a, cs, who = by_id[d.icao24], callsigns.get(d.icao24, ""), routes.get(d.icao24, "template")
-        tiers = {"cloud_llm": ["cloud_llm", "granite"], "granite": ["granite"]}.get(who, [])
-        if not config.USE_GRANITE:
-            tiers = [t for t in tiers if t != "granite"]
+        a, cs = by_id[d.icao24], callsigns.get(d.icao24, "")
         adv = None
-        for tier in tiers:   # cheapest acceptable fallback: Cloud LLM -> Granite -> template
+        if routes.get(d.icao24) == "granite" and config.USE_GRANITE:
             try:
-                if tier == "cloud_llm":
-                    adv, imp = writer.cloud_llm_advisory(d, a, cs)
-                    receipt.llm_calls += 1
-                    receipt.llm_energy_wh += imp.get("energy_wh", 0.0)
-                    receipt.llm_gco2e += imp.get("gco2e", 0.0)
-                    receipt.cost_usd += imp.get("cost_usd", 0.0)
-                else:
-                    adv, imp = writer.granite_advisory(d, a, cs)
-                    receipt.local_llm_calls += 1
-                    receipt.local_llm_energy_wh += imp.get("energy_wh", 0.0)
-                break
-            except NotImplementedError:
-                continue
+                adv, imp = writer.granite_advisory(d, a, cs)
+                receipt.local_llm_calls += 1
+                receipt.local_llm_energy_wh += imp.get("energy_wh", 0.0)
             except Exception as e:
-                log.warning("%s advisory failed for %s (%s): next tier", tier, d.icao24, e)
+                log.warning("granite advisory failed for %s (%s): template", d.icao24, e)
+                adv = None
         out.append(adv or writer.template_advisory(d, a, cs))
     return out
 

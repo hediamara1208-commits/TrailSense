@@ -32,22 +32,19 @@ WEATHER_TTL_S = 3600
 # Default autonomy threshold (slider in the UI)
 DEFAULT_THRESHOLD = 0.8
 
-# Advisory writing cascade: template -> local Granite (-> Cloud LLM, optional)
-# No Cloud LLM API credits at CodeJam (organizers, Sat 12:00): the Cloud LLM tier is off, Granite writes the key advisories.
 # Guardrail on Jev's forecast-reliability score (0-1): below it, a climb/descend always goes to Sophie.
 # OFF (0.0). History: with a generic question Jev rated EVERY GFS forecast "low" (0.01-0.11); the question is now
 # calibrated for GFS (100% = strongest signal) and scores are 0.53-0.98. Original note:
 # because GFS caps humidity at 100 % right at the 95 % threshold. At 0.5 it would send every move to review,
 # so the score carries no signal here; the high autonomy threshold does that job. Turn on with a better forecast.
 MIN_FORECAST_RELIABILITY = 0.0
-MAX_CLOUD_LLM_ADVISORIES = 0      # set to 1-2 with an CLOUD_LLM_API_KEY to use Cloud LLM for the most important ones
-MAX_GRANITE_ADVISORIES = 5     # routine advisories, written locally
+# Advisory writing: local Granite for the most important moves, the template for the rest
+MAX_GRANITE_ADVISORIES = 5     # per cycle, written locally
 USE_GRANITE = True             # False if Ollama/Granite does not work: go straight to the template
 OLLAMA_URL = "http://localhost:11434"
 GRANITE_MODEL = "granite4:micro"   # check the exact name with `ollama list` after `ollama pull`
 GRANITE_TIMEOUT_S = 60.0           # first call loads the model into memory (slower)
 LAPTOP_POWER_W = 25.0              # rough laptop draw while generating; local Wh = W x generation time
-CLOUD_LLM_MODEL = "cloud_llm-haiku-5-5"  # small model, enough to write a short advisory
 
 # Live mode refresh interval (seconds; anonymous OpenSky = 10 s minimum)
 REFRESH_S = 30

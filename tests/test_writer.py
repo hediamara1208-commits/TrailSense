@@ -51,8 +51,7 @@ def test_route_writers_skips_maintain(monkeypatch):
     other = humid_assessment()
     other.icao24 = "bbb222"
     monkeypatch.setattr(writer.config, "USE_GRANITE", True)
-    monkeypatch.setattr(writer.config, "MAX_CLOUD_LLM_ADVISORIES", 0)     # CodeJam: no Cloud LLM credits
     routes = writer.route_writers([decision(), keep], [humid_assessment(), other])
     assert routes["bbb222"] == "template" and routes["aaa111"] == "granite"
-    monkeypatch.setattr(writer.config, "MAX_CLOUD_LLM_ADVISORIES", 2)     # with a key, the top flight goes to Cloud LLM
-    assert writer.route_writers([decision(), keep], [humid_assessment(), other])["aaa111"] == "cloud_llm"
+    monkeypatch.setattr(writer.config, "USE_GRANITE", False)            # Granite off: everything uses the template
+    assert writer.route_writers([decision(), keep], [humid_assessment(), other])["aaa111"] == "template"

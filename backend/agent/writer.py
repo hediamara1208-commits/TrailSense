@@ -1,14 +1,12 @@
 """[HEDI] Writing advisories for the dispatcher: a cascade, cheapest first.
 
     1. Template (free)                -> every flagged flight by default
-    2. Local Granite (IBM, Ollama)    -> the next MAX_GRANITE_ADVISORIES advisories, on the laptop
-    3. Cloud LLM (cloud, small model)    -> only the MAX_CLOUD_LLM_ADVISORIES most important advisories
+    2. Local Granite (IBM, Ollama)    -> the MAX_GRANITE_ADVISORIES most important moves, on the laptop
                                          (night, high warming probability, large net benefit)
 
 Granite: `ollama pull <GRANITE_MODEL>` then POST {OLLAMA_URL}/api/chat (httpx is enough).
 Local energy: estimate laptop power (W) × call duration (s) / 3600 -> Wh.
-Cloud LLM: provider SDK; measure every call with EcoLogits (EcoLogits.init(providers=["provider"])).
-If USE_GRANITE = False or Ollama does not answer: skip tier 2 without crashing.
+If USE_GRANITE = False or Ollama does not answer: fall back to the template without crashing.
 
 Expected advisory example:
 "ACA871 at FL360 is flying through an ice-supersaturated layer (RHi 118%). FL340 is dry.
@@ -94,16 +92,11 @@ def granite_advisory(decision: Decision, assessment: RiskAssessment, callsign: s
     return Advisory(assessment.icao24, callsign or assessment.icao24, text, "granite"), impacts
 
 
-def cloud_llm_advisory(decision: Decision, assessment: RiskAssessment, callsign: str = "") -> tuple[Advisory, dict]:
-    """Advisory written by Cloud LLM. Returns (advisory, impacts) with impacts = {energy_wh, gco2e, cost_usd}."""
-    raise NotImplementedError
-
-
 def route_writers(decisions: list[Decision], assessments: list[RiskAssessment]) -> dict[str, str]:
-    """Decides who writes each advisory: {icao24: "cloud_llm" | "granite" | "template"}.
+    """Decides who writes each advisory: {icao24: "granite" | "template"}.
 
-    Rank by importance (night, persistent_warming_prob, net_benefit), give the top
-    MAX_CLOUD_LLM_ADVISORIES to Cloud LLM, the next MAX_GRANITE_ADVISORIES to Granite, the rest to the template.
+    Rank the moves by importance (night, persistent_warming_prob, net_benefit) and give the
+    top MAX_GRANITE_ADVISORIES to Granite, the rest to the template.
     MAINTAIN decisions always use the template (nothing to explain beyond the numbers).
     """
     by_id = {a.icao24: a for a in assessments}
@@ -114,10 +107,7 @@ def route_writers(decisions: list[Decision], assessments: list[RiskAssessment]) 
 
     routes = {d.icao24: "template" for d in decisions}
     ranked = sorted((d for d in decisions if d.action != Action.MAINTAIN), key=importance, reverse=True)
-    n_cloud_llm, n_granite = config.MAX_CLOUD_LLM_ADVISORIES, config.MAX_GRANITE_ADVISORIES if config.USE_GRANITE else 0
-    for rank, d in enumerate(ranked):
-        if rank < n_cloud_llm:
-            routes[d.icao24] = "cloud_llm"
-        elif rank < n_cloud_llm + n_granite:
-            routes[d.icao24] = "granite"
+    n_granite = config.MAX_GRANITE_ADVISORIES if config.USE_GRANITE else 0
+    for d in ranked[:n_granite]:
+        routes[d.icao24] = "granite"
     return routes

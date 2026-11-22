@@ -145,7 +145,6 @@ More detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) · physics hypotheses: [`docs/
 - **[IBM Granite](https://www.ibm.com/granite)** via [Ollama](https://ollama.com/): local advisories and the benchmark's LLM.
 - **[Lovable](https://lovable.dev/)**: the published frontend.
 - **[1Password](https://1password.com/)** CLI: the Jev key lives in a 1Password vault and is injected at run time (`op run --env-file=.env.1password`); no key on disk or in the repo.
-- **[Cloud LLM](https://www.provider.com/cloud_llm)** (provider): coding assistant throughout the weekend.
 - **Data:** [OpenSky Network](https://opensky-network.org/) (aircraft), [Open-Meteo](https://open-meteo.com/) GFS (weather). **Stack:** Python, FastAPI, httpx, Leaflet, React.
 
 ## Team

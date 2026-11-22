@@ -105,11 +105,11 @@ class Decision:
 @dataclass
 class Advisory:
     """Message for the dispatcher. Writing cascade, cheapest first:
-    template (free) -> local Granite (small IBM model via Ollama) -> Cloud LLM (1-2 key advisories)."""
+    template (free) -> local Granite (small IBM model via Ollama) for the most important moves."""
     icao24: str
     callsign: str
     text: str
-    written_by: str          # "template", "granite" or "cloud_llm"
+    written_by: str          # "template" or "granite"
 
 
 @dataclass
@@ -124,8 +124,8 @@ class Receipt:
     jev_input_tokens: int = 0
     local_llm_calls: int = 0      # Granite on the laptop (Ollama)
     local_llm_energy_wh: float = 0.0  # estimate: laptop power × call duration
-    llm_calls: int = 0            # Cloud LLM (cloud)
-    llm_energy_wh: float = 0.0    # via EcoLogits
+    llm_calls: int = 0            # cloud LLM calls (none: everything runs locally)
+    llm_energy_wh: float = 0.0
     llm_gco2e: float = 0.0
     cost_usd: float = 0.0
     latency_ms: float = 0.0
