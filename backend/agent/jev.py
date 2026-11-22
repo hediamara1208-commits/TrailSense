@@ -55,11 +55,13 @@ QUESTIONS = {
     },
     "forecast_reliability": {
         "type": "score",
-        "instructions": "How reliable is the humidity forecast behind this recommendation?",
+        "instructions": "How reliable is the humidity forecast behind this recommendation? "
+                        "The forecast comes from GFS, which caps humidity at about 100%: "
+                        "100% is the strongest signal GFS can give, not a borderline case.",
         "criteria": [
-            "Low: humidity close to the 100% threshold or weak signal",
-            "Medium: clear signal but model uncertainty noted",
-            "High: strong, unambiguous signal",
+            "Low: humidity just above the 95% persistence threshold (margin of 0-1 points)",
+            "Medium: humidity of 97-99% (margin of 2-4 points)",
+            "High: humidity at or above 100% (the GFS maximum): the air is saturated over ice",
         ],
     },
     "operational_feasibility": {
@@ -111,7 +113,7 @@ def flight_state(assessment: RiskAssessment, callsign: str = "") -> dict:
         "current_level": {"flight_level": cur.flight_level, "time": "night" if a.is_night else "day",
                           "minutes_in_ice_supersaturated_layer": a.minutes_in_issr},
         "options": options,
-        "forecast": {"source": "GFS weather model (Open-Meteo), hourly",
+        "forecast": {"source": "GFS weather model (Open-Meteo), hourly; humidity is capped at 100%",
                      "humidity_margin_above_persistence_threshold_pct": round(margin)},
     }
 
